@@ -1,137 +1,145 @@
-# Ardi Agent Skill
+# ardi-skill
 
-A Claude Code skill + reference Python implementation for participating in
-[Ardi WorkNet](../docs/design-spec.md). One worknet inside the broader
-[AWP](https://docs.awp.work) (Agent Work Protocol) ecosystem — discoverable
-through the `awp-skill` umbrella toolkit.
+The agent SDK + reference miner for **[Ardinals](https://ardinals-demo.vercel.app)** —
+a multilingual riddle-solving WorkNet on Base Sepolia testnet.
 
-> **v0.2 (current)**: on-chain commit-reveal + Chainlink VRF lottery
-> **v0.1 (legacy)**: off-chain submit (deprecated, see `agent_v1_legacy.py`)
+> **v0.3.0** · multi-LLM solver · skill-driven onboarding · single CLI
 
-## Provable fairness
-
-Ardi's mining is fully on-chain. The Coordinator publishes riddles +
-verifies answers against an immutable vault Merkle root. Winners are
-picked by **Chainlink VRF v2.5** — neither the Coordinator nor any
-operator can influence who wins a given (epoch, wordId) slot. Mints are
-gated by `ArdiEpochDraw.winners()`, not by any signature. Daily $aArdi
-emission flows 100% to NFT holders by power weight via Merkle airdrop;
-AWP receipts split into an operator ops cut (10% default, Timelock-set,
-hard-capped at 20%) and a holder slice via the same Merkle root. No team
-carve-out, no hidden channel. See [design-spec §0.5](../docs/design-spec.md#05-provable-fairness)
-for the full verification table.
-
-## What it does
-
-Lets any AI agent:
-
-1. **Discover Ardi** through awp-skill (lists Ardi alongside other worknets)
-2. **Register** (KYA verification + 10K $AWP Mining Bond)
-3. **Solve riddles** every 3 minutes using your LLM of choice
-4. **Commit + reveal** guesses on-chain (~$0.0014 per attempt on Base)
-5. **Win VRF lottery** → self-mint Ardinal NFT
-6. **Optionally fuse** Ardinals in The Forge for higher-power tokens
-7. **Claim daily airdrop** on tokens you hold — a single Merkle proof pays both $aArdi (worknet token, 100% to holders) and AWP (holder slice, ~90% under the default split)
-
-## How discovery works
-
-```
-user: "what AWP worknets can I mine on?"
-  ↓
-awp-skill lists: [Predict, Mine, Benchmark, Ardi, ...]
-  ↓
-user: "let's do Ardi"
-  ↓
-awp-skill: handles AWP-side onboarding (wallet, KYA, allocate stake)
-  ↓
-ardi-skill (this skill): takes over for Ardi-specific flow
-                          (commit / reveal / inscribe / fuse / claim)
-```
-
-ardi-skill never touches awp-level concerns — it always defers to awp-skill
-for wallet, KYA, and stake allocation.
-
-## Install (Claude Code users)
+## Install
 
 ```bash
-# 1. Install awp-skill first (if not already)
-mkdir -p ~/.claude/skills/awp
-curl -sL https://raw.githubusercontent.com/awp-worknet/awp-skill/main/SKILL.md \
-  -o ~/.claude/skills/awp/SKILL.md
-
-# 2. Install ardi-skill
-mkdir -p ~/.claude/skills/ardi
-curl -sL https://raw.githubusercontent.com/awp-worknet/ardi-skill/main/SKILL.md \
-  -o ~/.claude/skills/ardi/SKILL.md
+pip install git+https://github.com/leslieshen1/ardi-skill.git
 ```
 
-Then say in any session:
-- `挖 ardinals` / `mine ardinals` / `start ardi mining` — full mining loop
-- `fuse my ardinals` — fusion flow
-- `claim ardi airdrop` — daily dual-token claim ($aArdi + AWP in one tx)
+Python 3.10+. Provides one CLI: `ardi-agent`.
 
-## Manual run (no Claude Code)
+## 30-second quick start
 
 ```bash
-git clone https://github.com/awp-worknet/ardi-skill
-cd ardi-skill
-pip install -e .   # installs ardi_sdk + deps
+# 1. Make a wallet (saved at ~/.ardi/wallets/default.json — testnet only)
+ardi-agent wallet new
 
-# Required env
-export ARDI_AGENT_PK=0x...                         # same key as awp-skill agent
-export BASE_RPC_URL=https://mainnet.base.org
-export ARDI_COORDINATOR_URL=https://api.ardi.work
-export DEPLOY_JSON=/path/to/deployments/mainnet.json
-export ANTHROPIC_API_KEY=...                       # if using --solver claude
+# It prints your address. Copy it.
 
-# Run
-python3 src/agent.py --solver claude --max-mints 3
+# 2. Get Base Sepolia ETH for gas (any of these faucets):
+#    https://portal.cdp.coinbase.com/products/faucet
+#    https://www.alchemy.com/faucets/base-sepolia
+#    https://faucet.quicknode.com/base/sepolia
+
+# 3. One-shot setup: self-mint MockAWP, verify on MockKYA, lock 10K bond
+ardi-agent onboard
+
+# 4. Pick an LLM solver and start mining
+export ANTHROPIC_API_KEY=sk-ant-...
+ardi-agent mine --solver claude --max-mints 3
 ```
 
-The agent journals commit tickets to `agent_state.db` so it survives
-crashes — restarting picks up unrevealed commits and reveals them as long
-as the reveal window is still open.
+That's the whole flow. **Every step is real on-chain** — addresses, balances,
+and tx hashes are visible on [Basescan Sepolia](https://sepolia.basescan.org/).
+
+## Solver options (`--solver`)
+
+| Name | Provider | Required env |
+|---|---|---|
+| `claude` | Anthropic Claude (default) | `ANTHROPIC_API_KEY` |
+| `openai` | OpenAI gpt-4o-mini | `OPENAI_API_KEY` |
+| `deepseek` | DeepSeek | `DEEPSEEK_API_KEY` |
+| `groq` | Groq · Llama-3.3-70B | `GROQ_API_KEY` |
+| `together` | Together AI | `TOGETHER_API_KEY` |
+| `openrouter` | OpenRouter (any model) | `OPENROUTER_API_KEY` |
+| `ollama` | local Ollama | (none — set `OLLAMA_BASE_URL` if not localhost) |
+| `gemini` | Google Gemini | `GEMINI_API_KEY` |
+| `compat` | any OpenAI-compatible API | `ARDI_LLM_BASE_URL`, `ARDI_LLM_MODEL`, `ARDI_LLM_API_KEY` |
+| `stub` | Always answers "fire" — for smoke testing only | (none) |
+
+Override the model per provider via `ARDI_<PROVIDER>_MODEL` env, e.g.
+`ARDI_OPENAI_MODEL=gpt-4o`, `ARDI_GROQ_MODEL=llama-3.1-8b-instant`.
+
+## Full CLI
+
+```bash
+ardi-agent wallet new [--name NAME]      # create local keystore
+ardi-agent wallet show [--name NAME]     # print address
+ardi-agent wallet list                    # list local wallets
+ardi-agent wallet export [--name NAME] [--yes]   # print private key (with confirm)
+
+ardi-agent onboard [--name NAME]          # mint MockAWP + KYA + register miner
+ardi-agent mine    [--name NAME] --solver <provider> [--max-mints N]
+```
+
+Wallet keystores live at `~/.ardi/wallets/<name>.json` (override via
+`ARDI_HOME`). Multiple wallets supported via `--name`.
+
+> ⚠ **TESTNET ONLY** — keystore is plaintext. Encrypted keystores ship with the
+> mainnet release.
+
+## What `mine` actually does
+
+For each 3-minute epoch:
+
+1. Polls Coordinator at `ARDI_COORDINATOR_URL` for the current 14-15 riddles
+2. Picks the highest-EV ones (`power × rarity`) — top 3 by default
+3. Calls solver to get a guess
+4. Submits sealed commit on-chain (`keccak256(guess‖agent‖nonce)`) + 0.001 ETH bond
+5. After commit window closes → reveals (bond refunded)
+6. After reveal window closes → triggers VRF draw if no one else has
+7. If the agent wins the VRF lottery → calls `inscribe()` to mint the Ardinal NFT
+8. Loops up to `--max-mints 3` times (the on-chain per-agent cap), then exits
+
+Crash-safe — commit tickets journal to `~/.ardi/agent_state_<name>.db`.
+
+## Configuration (advanced)
+
+All optional — defaults work for the live testnet:
+
+| Var | Default | Purpose |
+|---|---|---|
+| `ARDI_HOME` | `~/.ardi` | Where keystores + state DBs live |
+| `ARDI_AGENT_PK` | (none) | Override keystore — pass PK directly |
+| `ARDI_WALLET_NAME` | `default` | Default keystore name |
+| `BASE_RPC_URL` | `https://sepolia.base.org` | Base Sepolia RPC endpoint |
+| `ARDI_COORDINATOR_URL` | `https://rimless-underling-bust.ngrok-free.dev` | Operator-run Coordinator |
+| `DEPLOY_JSON` | `https://ardinals-demo.vercel.app/deployments/base-sepolia.json` | Contract addresses |
+| `ANTHROPIC_API_KEY` | — | for `--solver claude` |
+| `OPENAI_API_KEY` | — | for `--solver openai` |
+| `DEEPSEEK_API_KEY` | — | for `--solver deepseek` |
+| (etc) | — | one per provider |
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `SKILL.md` | Claude Code skill manifest (trigger keywords + integration spec) |
-| `src/ardi_sdk.py` | Python SDK (the engine — ArdiClient class) |
-| `src/agent.py` | V2 reference mining loop (uses SDK) |
-| `src/agent_v1_legacy.py` | DEPRECATED V1 agent (for archaeological reference) |
-| `examples/full_cycle.py` | Step-by-step demo of the full lifecycle |
-| `tests/test_sdk.py` | Unit tests — most importantly, commit_hash format |
+| `src/ardi_skill/sdk.py` | Python SDK — `ArdiClient` class wrapping web3.py |
+| `src/ardi_skill/agent.py` | Mining loop + CLI dispatch |
+| `src/ardi_skill/wallet.py` | Local keystore management |
+| `src/ardi_skill/onboard.py` | One-shot setup (mint AWP / KYA / bond) |
+| `src/ardi_skill/_legacy.py` | DEPRECATED V1 (off-chain submit) |
+| `examples/full_cycle.py` | Step-by-step demo of every SDK call |
+| `tests/test_sdk.py` | Unit tests — commit_hash format especially |
+| `SKILL.md` | Claude Code skill manifest |
 
-## Dependencies
+## Provable fairness
 
-| Component | Reason |
-|---|---|
-| `awp-skill` | discovery, wallet, KYA, stake allocation (the umbrella) |
-| Python 3.11+ | f-strings, walrus, tomllib |
-| `web3.py` | on-chain commit / reveal / inscribe |
-| `eth-account` | local key handling (used by SDK) |
-| LLM access | Claude / GPT / Gemini / local — at least one solver |
-| Base RPC | for all chain reads + writes |
-| ~0.5 ETH | gas + commit bonds (refundable on reveal) |
-| 10K $AWP | Mining Bond (refundable) |
+Mining is fully on-chain. The Coordinator publishes riddles + verifies answers
+against an immutable vault Merkle root. Winners are picked by **Chainlink VRF
+v2.5** (mocked on testnet) — neither the Coordinator nor any operator can
+influence who wins a given (epoch, wordId) slot. Mints are gated by
+`ArdiEpochDraw.winners()`, not by any signature.
 
-## Design notes
-
-- `select_targets()` ranks riddles by `power × rarity_weight`. Real agents
-  should adjust by (a) language proficiency — some agents may be stronger at
-  zh/ja than fr/de, (b) expected competitor density on legendary slots,
-  (c) the agent's own historical solve rate by rarity.
-- The `commit_hash()` helper in `ardi_sdk` is unit-tested against the contract's
-  `keccak256(abi.encodePacked(guess, msg.sender, nonce))`. Always use it
-  verbatim — rolling your own is the most common reason an agent's reveals
-  fail with `CommitMismatch`.
-- Agents are FREE to use any randomization for nonces and any solver. The
-  protocol is open; this skill just provides the smoothest path.
+Daily $aArdi emission flows 100% to NFT holders by power weight via Merkle
+airdrop; AWP receipts split into an operator ops cut (10% default,
+Timelock-set, hard-capped at 20%) and a holder slice via the same Merkle
+root.
 
 ## Out of scope
 
-- Frontend / UI (separate repo)
-- Coordinator service (operator concern; see `coordinator/` in main repo)
-- Smart-contract deployment (see `contracts/script/Deploy.s.sol`)
-- AWP wallet / staking / KYA (lives in awp-skill)
+- Frontend / UI — see [ardinals-demo](https://ardinals-demo.vercel.app)
+- Coordinator service — operator concern; runs on the operator's machine
+- Mainnet — not live yet; this is the testnet rehearsal
+- AWP-level operations (wallet / staking / KYA on RootNet) — handled
+  separately by [awp-skill](https://github.com/awp-worknet/awp-skill)
+  if/when running on mainnet AWP
+
+## License
+
+MIT
