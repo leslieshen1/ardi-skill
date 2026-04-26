@@ -49,6 +49,7 @@ def _make_client(args) -> ArdiClient:
             "epoch_draw": deploy["epochDraw"],
             "mint_controller": deploy["mintController"],
             "mock_awp": deploy.get("mockAWP", deploy.get("awp_token", "")),
+            "mock_randomness": deploy.get("mockRandomness", ""),
         },
         chain_id=int(deploy["chainId"]),
     )

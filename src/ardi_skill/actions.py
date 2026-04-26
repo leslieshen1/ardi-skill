@@ -52,6 +52,7 @@ def _make_client(name: Optional[str]) -> ArdiClient:
             "epoch_draw": deploy["epochDraw"],
             "mint_controller": deploy["mintController"],
             "mock_awp": deploy.get("mockAWP", deploy.get("awp_token", "")),
+            "mock_randomness": deploy.get("mockRandomness", ""),
         },
         chain_id=int(deploy["chainId"]),
     )
@@ -504,18 +505,29 @@ def cmd_play(args):
     print(f"\nwaiting {wait2}s for reveal window to close + VRF callback…", file=sys.stderr)
     time.sleep(wait2)
 
-    # ---- Stage 6 — request_draw (idempotent — fine if someone already did) ----
+    # ---- Stage 6 — request_draw + fulfill (testnet auto-fulfills MockRandomness) ----
     for wid in answers.keys():
         try:
             n = client.correct_count(epoch_id, wid)
-            if n > 0:
-                # Try to nudge VRF; if already requested, the contract reverts harmlessly.
-                try:
-                    client.request_draw(epoch_id, wid)
-                except Exception:
-                    pass
         except Exception:
-            pass
+            n = 0
+        if n == 0:
+            continue
+        # Trigger VRF; if already requested, the contract reverts harmlessly.
+        try:
+            client.request_draw(epoch_id, wid)
+            print(f"[{epoch_id}/{wid}] requestDraw sent ({n} candidate{'s' if n != 1 else ''})", file=sys.stderr)
+        except Exception as e:
+            # likely DrawAlreadyRequested — fine, fall through to fulfill
+            print(f"[{epoch_id}/{wid}] requestDraw skipped: {str(e)[:60]}", file=sys.stderr)
+        # Now fulfill MockRandomness — testnet only. On mainnet this is a no-op
+        # because Chainlink VRF auto-callbacks (and there's no MockRandomness).
+        try:
+            tx = client.fulfill_pending_for(epoch_id, wid)
+            if tx:
+                print(f"[{epoch_id}/{wid}] VRF fulfilled tx={tx[:14]}…", file=sys.stderr)
+        except Exception as e:
+            print(f"[{epoch_id}/{wid}] fulfill failed: {e}", file=sys.stderr)
 
     # ---- Stage 7 — winners + inscribe ----
     # Poll winners up to 90s in case VRF callback is slow

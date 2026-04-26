@@ -67,7 +67,26 @@ log = logging.getLogger("ardi.sdk")
 # Minimal ABIs — only the calls the SDK actually makes
 # ============================================================================
 
+# MockRandomness exposes a permissionless `fulfill(requestId)` that triggers
+# the VRF callback synchronously. On real Chainlink VRF this is automatic;
+# on testnet someone has to call it. The agent calls it itself after
+# request_draw, treating it as part of the same logical step.
+MOCK_RANDOMNESS_ABI = [
+    {"type": "function", "name": "fulfill", "stateMutability": "nonpayable",
+     "inputs": [{"type": "uint256", "name": "requestId"}], "outputs": []},
+]
+
+# Used to find requestId from the receipt of request_draw, so we can call fulfill.
+DRAW_REQUESTED_EVENT_SIG = "DrawRequested(uint256,uint256,uint256,uint256)"
+
 EPOCH_DRAW_ABI = [
+    {"type": "event", "name": "DrawRequested", "anonymous": False,
+     "inputs": [
+         {"type": "uint256", "name": "epochId", "indexed": True},
+         {"type": "uint256", "name": "wordId",  "indexed": True},
+         {"type": "uint256", "name": "requestId"},
+         {"type": "uint256", "name": "candidates"},
+     ]},
     {"type": "function", "name": "openEpoch", "stateMutability": "nonpayable",
      "inputs": [{"type": "uint256", "name": "epochId"},
                 {"type": "uint64", "name": "commitWindow"},
@@ -227,6 +246,15 @@ class ArdiClient:
             address=self._contracts["bond_escrow"], abi=BOND_ESCROW_ABI)
         self._mint_ctrl = self.w3.eth.contract(
             address=self._contracts["mint_controller"], abi=MINT_CTRL_ABI)
+        # MockRandomness — only present on testnet rehearsals where the
+        # operator deploys a mock VRF. Real Chainlink VRF doesn't expose
+        # public fulfill(); on mainnet this address won't be in `contracts`.
+        mock_rng_addr = self._contracts.get("mock_randomness", "")
+        if mock_rng_addr and int(mock_rng_addr, 16) != 0:
+            self._mock_rng = self.w3.eth.contract(
+                address=mock_rng_addr, abi=MOCK_RANDOMNESS_ABI)
+        else:
+            self._mock_rng = None
 
     @property
     def address(self) -> str:
@@ -414,6 +442,57 @@ class ArdiClient:
             gas=200_000,
         )
         return tx_hash
+
+    def fulfill_pending_for(self, epoch_id: int, word_id: int) -> str | None:
+        """Look up the most recent DrawRequested event for (epoch, wordId) and
+        call MockRandomness.fulfill(requestId) so the VRF callback fires.
+
+        Real Chainlink VRF auto-fulfills asynchronously — this is testnet only.
+        Returns the fulfill tx hash, or None if no MockRandomness deployed
+        (mainnet) / no DrawRequested log found / already fulfilled.
+        """
+        if self._mock_rng is None:
+            return None
+        event_sig = self.w3.keccak(text=DRAW_REQUESTED_EVENT_SIG).hex()
+        if not event_sig.startswith("0x"):
+            event_sig = "0x" + event_sig
+        epoch_topic = "0x" + int(epoch_id).to_bytes(32, "big").hex()
+        word_topic  = "0x" + int(word_id).to_bytes(32, "big").hex()
+        # Scan a window of recent blocks. Base Sepolia is 2s blocks; 5K
+        # covers the last ~3h which is way more than the per-epoch cycle.
+        latest = self.w3.eth.block_number
+        from_block = max(0, latest - 5000)
+        try:
+            logs = self.w3.eth.get_logs({
+                "address": self._draw.address,
+                "topics": [event_sig, epoch_topic, word_topic],
+                "fromBlock": from_block,
+            })
+        except Exception as e:
+            log.warning(f"fulfill: get_logs failed for ({epoch_id}, {word_id}): {e}")
+            return None
+        if not logs:
+            log.warning(f"fulfill: no DrawRequested log for ({epoch_id}, {word_id})")
+            return None
+        latest_log = max(logs, key=lambda L: L["blockNumber"])
+        # data: requestId (uint256, first 32 bytes) + candidates (uint256)
+        data = latest_log["data"]
+        if hasattr(data, "hex"):
+            data = data.hex()
+        if data.startswith("0x"):
+            data = data[2:]
+        request_id = int(data[:64], 16)
+        try:
+            tx_hash = self._send(
+                self._mock_rng.functions.fulfill(request_id),
+                gas=300_000,
+            )
+            log.info(f"fulfill ok: request_id={request_id} tx={tx_hash}")
+            return tx_hash
+        except Exception as e:
+            # Common case: already fulfilled (UnknownRequest revert) — that's fine
+            log.info(f"fulfill: request_id={request_id} skipped: {e}")
+            return None
 
     def winner_of(self, epoch_id: int, word_id: int) -> str:
         return self._draw.functions.winners(epoch_id, word_id).call()
