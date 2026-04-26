@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ardi-skill"
+version = "0.2.0"
+description = "Agent SDK + reference miner for the Ardi WorkNet on Base. Solves multilingual riddles, mints Ardinal NFTs via on-chain commit-reveal + Chainlink VRF, claims dual-token airdrops."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Ardinals", email = "hi@ardinals.work" }
+]
+keywords = [
+    "ardi", "ardinals", "awp", "agent",
+    "ai-agent", "worknet", "base", "ethereum",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "web3>=6.20",
+    "eth-account>=0.13",
+    "eth-utils>=4.1",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+# `pip install ardi-skill[claude]` for the Anthropic solver
+claude = ["anthropic>=0.40"]
+# `pip install ardi-skill[openai]` for the OpenAI solver
+openai = ["openai>=1.50"]
+# `pip install ardi-skill[dev]` for tests + linting
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+ardi-agent = "ardi_skill.agent:main"
+
+[project.urls]
+Homepage      = "https://github.com/leslieshen1/ardi-skill"
+Repository    = "https://github.com/leslieshen1/ardi-skill"
+"Bug Tracker" = "https://github.com/leslieshen1/ardi-skill/issues"
+Demo          = "https://ardinals-demo.vercel.app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ardi_skill = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
