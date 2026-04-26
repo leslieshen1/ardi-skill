@@ -1,9 +1,10 @@
 # ardi-skill
 
-The agent SDK + reference miner for **[Ardinals](https://ardinals-demo.vercel.app)** —
-a multilingual riddle-solving WorkNet on Base Sepolia testnet.
+Agent SDK + miner for **[Ardinals](https://ardinals-demo.vercel.app)** — a
+multilingual riddle-solving WorkNet on Base Sepolia testnet.
 
-> **v0.3.0** · multi-LLM solver · skill-driven onboarding · single CLI
+> **v0.6.0** — `play` subcommand: agent supplies guesses, skill handles
+> everything else (no LLM API key required).
 
 ## Install
 
@@ -13,29 +14,47 @@ pip install git+https://github.com/leslieshen1/ardi-skill.git
 
 Python 3.10+. Provides one CLI: `ardi-agent`.
 
-## 30-second quick start
+## Quick start (no LLM API key needed) — recommended for AI agents
+
+If you're running this **inside an LLM-driven harness** (Claude Code, Cursor
+agent, OpenClaw, your own wrapper), the agent IS the solver — you don't
+need a separate LLM API key.
 
 ```bash
-# 1. Make a wallet (saved at ~/.ardi/wallets/default.json — testnet only)
-ardi-agent wallet new
+# 1. wallet + funds + onboard
+ardi-agent wallet new                # prints address; faucet it
+ardi-agent onboard                   # mints MockAWP, KYA, locks 10K bond
 
-# It prints your address. Copy it.
+# 2. fetch riddles for the current epoch
+ardi-agent epoch
+# returns JSON: {"epoch_id": 100007, "riddles": [{"word_id":5,"riddle":"...","power":28},...]}
 
-# 2. Get Base Sepolia ETH for gas (any of these faucets):
-#    https://portal.cdp.coinbase.com/products/faucet
-#    https://www.alchemy.com/faucets/base-sepolia
-#    https://faucet.quicknode.com/base/sepolia
+# 3. let your agent reason, then run the full epoch in one shot
+ardi-agent play --answers '{"5":"fire","11":"water","0":"shadow"}'
+# → commits each → waits commit window → reveals → waits VRF → inscribes wins
+# → ~4-5 min of blocking time, then exits with a summary
 
-# 3. One-shot setup: self-mint MockAWP, verify on MockKYA, lock 10K bond
-ardi-agent onboard
-
-# 4. Pick an LLM solver and start mining
-export ANTHROPIC_API_KEY=sk-ant-...
-ardi-agent mine --solver claude --max-mints 3
+# 4. (optional) view your inventory
+ardi-agent forge list
 ```
 
-That's the whole flow. **Every step is real on-chain** — addresses, balances,
-and tx hashes are visible on [Basescan Sepolia](https://sepolia.basescan.org/).
+`play` blocks for the whole epoch lifecycle (~4-5 min). Single command, no
+threads, no API keys, no manual sleep loops.
+
+## Quick start with autonomous mining (needs LLM API key)
+
+If you'd rather have the skill itself call out to an LLM and auto-pick guesses:
+
+```bash
+# pick any free or paid LLM
+export GROQ_API_KEY=gsk_...                      # https://console.groq.com/keys (free)
+# or: export ANTHROPIC_API_KEY=sk-ant-...
+# or: export OPENAI_API_KEY=sk-...
+# or: export DEEPSEEK_API_KEY=...
+# or: export GEMINI_API_KEY=...
+
+ardi-agent mine --solver groq --max-mints 3      # closed-loop autonomous mining
+```
 
 ## Solver options (`--solver`)
 

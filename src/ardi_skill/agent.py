@@ -496,7 +496,25 @@ def cmd_mine(args):
         },
         chain_id=int(deploy["chainId"]),
     )
-    solver = make_solver(args.solver)
+    try:
+        solver = make_solver(args.solver)
+    except RuntimeError as e:
+        # Most common cause: API key missing or empty. Give a useful nudge.
+        msg = str(e)
+        print(f"\n✗ {msg}\n", file=sys.stderr)
+        print(
+            "If you're running inside an LLM-driven harness (Claude Code, Cursor,\n"
+            "OpenClaw…) you don't need a separate LLM API key — use `play` instead:\n\n"
+            "    1. ardi-agent epoch                              # see riddles\n"
+            "    2. <agent reasons about answers>\n"
+            "    3. ardi-agent play --answers '{\"5\":\"fire\",\"11\":\"water\"}'\n\n"
+            "Or, get a free key (Groq is fastest) and use mine:\n"
+            "    https://console.groq.com/keys\n"
+            "    export GROQ_API_KEY=gsk_...\n"
+            "    ardi-agent mine --solver groq\n",
+            file=sys.stderr,
+        )
+        sys.exit(2)
     state_db = args.state_db or str(Path.home() / ".ardi" / f"agent_state_{args.name or 'default'}.db")
     store = TicketStore(state_db)
 
@@ -627,6 +645,29 @@ def _build_parser():
     pt = sub.add_parser("tickets", help="list locally-stored unrevealed commit tickets")
     common(pt)
     pt.set_defaults(func=act.cmd_tickets)
+
+    pp = sub.add_parser(
+        "play",
+        help="one-shot full epoch loop using YOUR answers (no LLM key needed)",
+        description="""\
+Agent supplies guesses, skill handles everything else (timing + on-chain
+plumbing). Workflow:
+
+  1. ardi-agent epoch                         # see what the riddles are
+  2. <agent reasons about answers>
+  3. ardi-agent play --answers '{"5":"fire"}'
+
+`play` will: commit each guess → wait for commit window → reveal all →
+wait for VRF → check winners → inscribe wins. Single command, ~4-5 min
+of blocking time. No LLM API key required.""",
+    )
+    pp.add_argument(
+        "--answers", required=True,
+        help='JSON object mapping wordId → guess, e.g. \'{"5":"fire","11":"water"}\'. '
+             'Up to 5 entries (on-chain cap per agent per epoch).',
+    )
+    common(pp)
+    pp.set_defaults(func=act.cmd_play)
 
     # ---- mine ----
     m = sub.add_parser("mine", help="run the mining loop")

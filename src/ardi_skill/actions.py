@@ -370,3 +370,191 @@ def cmd_tickets(args):
             for t in tickets
         ],
     }, args)
+
+
+# ============================================================================
+# play — full epoch loop with agent-supplied answers (no LLM key needed)
+# ============================================================================
+#
+# This is THE one-shot primitive for "agent IS the solver" harnesses
+# (Claude Code, Cursor agent, OpenClaw, etc).
+#
+# The agent runs `ardi-agent epoch` to see riddles, reasons about answers
+# itself, then runs `ardi-agent play --answers '{"5":"fire","11":"water"}'`.
+# The skill then handles the entire blocking timing pipeline:
+#
+#   1. (current epoch fetched on entry — bails if stale)
+#   2. commit each (word_id → guess) on chain   [a few sec]
+#   3. wait for commit window to close          [up to 165s]
+#   4. reveal all our commits                    [a few sec]
+#   5. wait for reveal window + VRF              [up to 90s]
+#   6. trigger requestDraw on each (idempotent)
+#   7. poll winners → inscribe each win         [up to 60s]
+#   8. exit, report a summary
+
+def _parse_answers(spec: str) -> dict[int, str]:
+    """Parse --answers JSON into {word_id: guess}. Accepts:
+       {"5": "fire", "11": "water"}   — JSON object
+       {"5": "fire"}                   — single entry
+    """
+    try:
+        d = json.loads(spec)
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"--answers is not valid JSON: {e}")
+    if not isinstance(d, dict):
+        raise SystemExit("--answers must be a JSON object {wordId: guess, ...}")
+    out: dict[int, str] = {}
+    for k, v in d.items():
+        try:
+            wid = int(k)
+        except (TypeError, ValueError):
+            raise SystemExit(f"--answers key {k!r} is not a wordId integer")
+        if not isinstance(v, str) or not v.strip():
+            raise SystemExit(f"--answers value for wordId {wid} must be a non-empty string")
+        out[wid] = v.strip().lower()
+    return out
+
+
+def cmd_play(args):
+    import time
+    client = _make_client(args.name)
+    store = TicketStore(_store_path(args.name))
+
+    answers = _parse_answers(args.answers)
+    if not answers:
+        _err("no answers provided", 7)
+    if len(answers) > 5:
+        _err(f"too many answers ({len(answers)}); on-chain cap is 5 commits per agent per epoch", 7)
+
+    # ---- Stage 1 — fetch current epoch ----
+    try:
+        epoch = client.fetch_current_epoch()
+    except Exception as e:
+        _err(f"couldn't fetch current epoch: {e}", 2)
+    epoch_id = epoch.epoch_id
+    commit_deadline = epoch.commit_deadline
+    reveal_deadline = epoch.reveal_deadline
+    valid_word_ids = {r.word_id for r in epoch.riddles}
+
+    # Sanity: every word_id in answers must be in this epoch's riddles
+    extras = set(answers.keys()) - valid_word_ids
+    if extras:
+        _err(f"word_ids {sorted(extras)} are not in epoch {epoch_id} (valid: {sorted(valid_word_ids)})", 7)
+
+    now = int(time.time())
+    if now >= commit_deadline:
+        _err(
+            f"commit window already closed for epoch {epoch_id} "
+            f"(closed {now - commit_deadline}s ago). Run `ardi-agent epoch` to fetch a fresh one.",
+            8,
+        )
+
+    summary = {
+        "ok": True,
+        "epoch_id": epoch_id,
+        "commits": [],
+        "reveals": [],
+        "winners": [],
+        "inscriptions": [],
+        "wait_seconds": {"commit_window": 0, "reveal_window": 0},
+    }
+
+    # ---- Stage 2 — commit all ----
+    for wid, guess in answers.items():
+        try:
+            ticket = client.commit(epoch_id, wid, guess)
+            store.save(ticket)
+            summary["commits"].append({
+                "word_id": wid, "guess": guess, "tx_hash": ticket.tx_hash,
+            })
+            print(f"[{epoch_id}/{wid}] committed '{guess}' tx={ticket.tx_hash[:14]}…", file=sys.stderr)
+        except Exception as e:
+            print(f"[{epoch_id}/{wid}] commit failed: {e}", file=sys.stderr)
+            summary["commits"].append({"word_id": wid, "guess": guess, "error": str(e)})
+
+    # ---- Stage 3 — wait for commit window to close ----
+    wait1 = max(5, commit_deadline - int(time.time()) + 5)
+    summary["wait_seconds"]["commit_window"] = wait1
+    print(f"\nwaiting {wait1}s for commit window to close + Coordinator publishAnswer…", file=sys.stderr)
+    time.sleep(wait1)
+
+    # ---- Stage 4 — reveal all our commits ----
+    for c in summary["commits"]:
+        if "error" in c:
+            continue
+        wid = c["word_id"]
+        # Pull ticket back from store (nonce was saved there)
+        tickets = [t for t in store.unrevealed() if t.epoch_id == epoch_id and t.word_id == wid]
+        if not tickets:
+            print(f"[{epoch_id}/{wid}] no ticket in store, skipping reveal", file=sys.stderr)
+            continue
+        t = tickets[0]
+        try:
+            tx = client.reveal(epoch_id, wid, t.guess, t.nonce)
+            store.mark_revealed(epoch_id, wid)
+            summary["reveals"].append({"word_id": wid, "tx_hash": tx})
+            print(f"[{epoch_id}/{wid}] revealed tx={tx[:14]}…", file=sys.stderr)
+        except Exception as e:
+            print(f"[{epoch_id}/{wid}] reveal failed: {e}", file=sys.stderr)
+            summary["reveals"].append({"word_id": wid, "error": str(e)})
+
+    # ---- Stage 5 — wait for reveal window + VRF ----
+    wait2 = max(10, reveal_deadline - int(time.time()) + 30)
+    summary["wait_seconds"]["reveal_window"] = wait2
+    print(f"\nwaiting {wait2}s for reveal window to close + VRF callback…", file=sys.stderr)
+    time.sleep(wait2)
+
+    # ---- Stage 6 — request_draw (idempotent — fine if someone already did) ----
+    for wid in answers.keys():
+        try:
+            n = client.correct_count(epoch_id, wid)
+            if n > 0:
+                # Try to nudge VRF; if already requested, the contract reverts harmlessly.
+                try:
+                    client.request_draw(epoch_id, wid)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    # ---- Stage 7 — winners + inscribe ----
+    # Poll winners up to 90s in case VRF callback is slow
+    deadline = time.time() + 90
+    pending = set(answers.keys())
+    while pending and time.time() < deadline:
+        for wid in list(pending):
+            try:
+                winner = client.winner_of(epoch_id, wid)
+            except Exception:
+                continue
+            if winner == "0x0000000000000000000000000000000000000000":
+                continue
+            pending.discard(wid)
+            you_won = winner.lower() == client.address.lower()
+            summary["winners"].append({
+                "word_id": wid,
+                "winner": winner,
+                "you_won": you_won,
+            })
+            print(f"[{epoch_id}/{wid}] winner = {winner[:10]}…{' (YOU!)' if you_won else ''}", file=sys.stderr)
+            if you_won:
+                try:
+                    tx = client.inscribe(epoch_id, wid)
+                    summary["inscriptions"].append({
+                        "word_id": wid, "token_id": wid + 1, "tx_hash": tx,
+                    })
+                    print(f"[{epoch_id}/{wid}] ✓ INSCRIBED tokenId={wid + 1} tx={tx[:14]}…", file=sys.stderr)
+                except Exception as e:
+                    print(f"[{epoch_id}/{wid}] inscribe failed: {e}", file=sys.stderr)
+                    summary["inscriptions"].append({"word_id": wid, "error": str(e)})
+        if pending:
+            time.sleep(5)
+
+    # Anything left pending → no winner picked yet (or VRF still hanging)
+    for wid in pending:
+        summary["winners"].append({
+            "word_id": wid, "winner": None, "you_won": False, "note": "VRF still pending or nobody correctly revealed",
+        })
+
+    print("", file=sys.stderr)
+    _print(summary, args)
