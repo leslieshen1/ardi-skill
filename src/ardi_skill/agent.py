@@ -554,6 +554,28 @@ def _build_parser():
     ob.add_argument("--name", default="default", help="wallet keystore name")
     ob.set_defaults(func=onboard_mod.cmd_onboard)
 
+    # ---- forge ----
+    from . import forge as forge_mod
+    fg = sub.add_parser("forge", help="fuse two Ardinals into one (LLM oracle + on-chain)")
+    fgsub = fg.add_subparsers(dest="fcmd")
+
+    fgl = fgsub.add_parser("list", help="list owned Ardinals (what's fuseable)")
+    fgl.add_argument("--name", default="default")
+    fgl.set_defaults(func=forge_mod.cmd_forge_list)
+
+    fgq = fgsub.add_parser("quote", help="LLM oracle preview (no tx, no signature)")
+    fgq.add_argument("token_a", type=int, help="first Ardinal tokenId")
+    fgq.add_argument("token_b", type=int, help="second Ardinal tokenId")
+    fgq.add_argument("--name", default="default")
+    fgq.set_defaults(func=forge_mod.cmd_forge_quote)
+
+    fgf = fgsub.add_parser("fuse", help="actually fuse — quote → sign → on-chain fuse()")
+    fgf.add_argument("token_a", type=int, help="first Ardinal tokenId")
+    fgf.add_argument("token_b", type=int, help="second Ardinal tokenId")
+    fgf.add_argument("--name", default="default")
+    fgf.add_argument("--yes", action="store_true", help="skip confirmation prompt")
+    fgf.set_defaults(func=forge_mod.cmd_forge_fuse)
+
     # ---- mine ----
     m = sub.add_parser("mine", help="run the mining loop")
     m.add_argument("--name", default="default", help="wallet keystore name")
@@ -596,6 +618,9 @@ def main():
 
     if args.cmd == "wallet" and not getattr(args, "wcmd", None):
         ap.parse_args(["wallet", "--help"])
+        return
+    if args.cmd == "forge" and not getattr(args, "fcmd", None):
+        ap.parse_args(["forge", "--help"])
         return
 
     args.func(args)

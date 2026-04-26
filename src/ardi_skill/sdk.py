@@ -452,15 +452,25 @@ class ArdiClient:
     # ----------------------------------------------------------- Settlement --
 
     def claim_airdrop(self, day: int) -> str:
-        """Pull Merkle proof from Coordinator and call ArdiMintController.claim."""
+        """Pull dual-token Merkle proof from Coordinator and call
+        ArdiMintController.claim(day, ardiAmount, awpAmount, proof).
+
+        Coordinator endpoint shape (post-AWP-alignment):
+          { ardiAmount: str(uint256), awpAmount: str(uint256), proof: [hex,...] }
+
+        Falls back to legacy {amount, proof} shape if the operator hasn't
+        upgraded the Coordinator yet — sets awpAmount=0 in that case.
+        """
         proof_data = self.fetch_airdrop_proof(day)
         if not proof_data:
             raise RuntimeError(f"no airdrop entry for {self.address} on day {day}")
-        amount = int(proof_data["amount"])
+        # Dual-token (current) shape
+        ardi_amount = int(proof_data.get("ardiAmount", proof_data.get("amount", 0)))
+        awp_amount = int(proof_data.get("awpAmount", 0))
         proof = [bytes.fromhex(p.removeprefix("0x")) for p in proof_data["proof"]]
         return self._send(
-            self._mint_ctrl.functions.claim(day, amount, proof),
-            gas=200_000,
+            self._mint_ctrl.functions.claim(day, ardi_amount, awp_amount, proof),
+            gas=400_000,
         )
 
     def already_claimed(self, day: int) -> bool:
