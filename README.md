@@ -70,49 +70,36 @@ Then say in any session:
 - `fuse my ardinals` — fusion flow
 - `claim ardi airdrop` — daily dual-token claim ($aArdi + AWP in one tx)
 
-## Quick start (Base Sepolia testnet)
+## Manual run (no Claude Code)
 
 ```bash
-# 1. Install
-pip install git+https://github.com/leslieshen1/ardi-skill.git
+git clone https://github.com/awp-worknet/ardi-skill
+cd ardi-skill
+pip install -e .   # installs ardi_sdk + deps
 
-# 2. Onboarding — open the demo, connect MetaMask, click through:
-#    https://ardinals-demo.vercel.app/?nav=tutorial
-#    The page hands you 4 buttons:
-#      a. self-mint 50K test $AWP
-#      b. self-verify on MockKYA
-#      c. lock 10K $AWP Mining Bond
-#      d. (later) claim daily airdrop
-#    Get a Base Sepolia ETH faucet drip first (Coinbase/Alchemy/QuickNode).
-
-# 3. Configure env (point at the testnet rehearsal)
-export ARDI_AGENT_PK=<your wallet PK from MetaMask export>
-export BASE_RPC_URL=https://sepolia.base.org
-export ARDI_COORDINATOR_URL=<operator-supplied — ask the team>
-export DEPLOY_JSON=https://ardinals-demo.vercel.app/deployments/base-sepolia.json
+# Required env
+export ARDI_AGENT_PK=0x...                         # same key as awp-skill agent
+export BASE_RPC_URL=https://mainnet.base.org
+export ARDI_COORDINATOR_URL=https://api.ardi.work
+export DEPLOY_JSON=/path/to/deployments/mainnet.json
 export ANTHROPIC_API_KEY=...                       # if using --solver claude
 
-# 4. Run the agent
-ardi-agent --solver claude --max-mints 3
+# Run
+python3 src/agent.py --solver claude --max-mints 3
 ```
 
 The agent journals commit tickets to `agent_state.db` so it survives
 crashes — restarting picks up unrevealed commits and reveals them as long
 as the reveal window is still open.
 
-> **Mainnet is NOT live yet.** This is the testnet rehearsal of the
-> AWP-aligned Ardi WorkNet. Tokens are mocks (`MockAWP`, `MockKYA`,
-> `MockRandomness`); the contract logic, dual-token Merkle, and VRF flow
-> are 1:1 with what mainnet will run.
-
 ## Files
 
 | File | Purpose |
 |---|---|
 | `SKILL.md` | Claude Code skill manifest (trigger keywords + integration spec) |
-| `src/ardi_skill/sdk.py` | Python SDK (the engine — `ArdiClient` class) |
-| `src/ardi_skill/agent.py` | V2 reference mining loop (uses SDK) |
-| `src/ardi_skill/_legacy.py` | DEPRECATED V1 agent (for archaeological reference) |
+| `src/ardi_sdk.py` | Python SDK (the engine — ArdiClient class) |
+| `src/agent.py` | V2 reference mining loop (uses SDK) |
+| `src/agent_v1_legacy.py` | DEPRECATED V1 agent (for archaeological reference) |
 | `examples/full_cycle.py` | Step-by-step demo of the full lifecycle |
 | `tests/test_sdk.py` | Unit tests — most importantly, commit_hash format |
 
@@ -120,14 +107,14 @@ as the reveal window is still open.
 
 | Component | Reason |
 |---|---|
-| Python 3.10+ | dataclasses, walrus, modern typing |
+| `awp-skill` | discovery, wallet, KYA, stake allocation (the umbrella) |
+| Python 3.11+ | f-strings, walrus, tomllib |
 | `web3.py` | on-chain commit / reveal / inscribe |
-| `eth-account`, `eth-utils` | key handling + keccak helpers |
-| `httpx` | Coordinator HTTP client |
+| `eth-account` | local key handling (used by SDK) |
 | LLM access | Claude / GPT / Gemini / local — at least one solver |
 | Base RPC | for all chain reads + writes |
-| ~0.001 ETH on Base Sepolia | gas + 0.001 ETH per-attempt commit bond (refundable on reveal) |
-| 10K MockAWP (testnet) | Mining Bond (refundable). Self-mint via the demo's onboarding page. |
+| ~0.5 ETH | gas + commit bonds (refundable on reveal) |
+| 10K $AWP | Mining Bond (refundable) |
 
 ## Design notes
 

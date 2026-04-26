@@ -26,6 +26,7 @@ import json
 import logging
 import os
 import sqlite3
+import sys
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -43,35 +44,48 @@ log = logging.getLogger("ardi.agent")
 # ============================================================================
 
 class Solver:
-    """Plug-in interface. The default `StubSolver` always returns 'fire'."""
+    """Plug-in interface. Subclasses implement `solve(riddle) -> str | None`."""
 
     def solve(self, riddle: Riddle) -> Optional[str]:
         raise NotImplementedError
 
 
 class StubSolver(Solver):
-    """Deterministic stub for smoke testing. Don't use in real mining."""
+    """Deterministic stub for smoke testing — always returns 'fire'."""
 
     def solve(self, riddle: Riddle) -> Optional[str]:
         return "fire"
 
 
-class ClaudeSolver(Solver):
-    """Calls Anthropic Claude. Requires ANTHROPIC_API_KEY."""
+# ----- Shared prompt + response cleanup -----
 
-    def __init__(self, model: str = "claude-sonnet-4-20250514"):
+def _build_prompt(riddle: Riddle) -> str:
+    return (
+        f"You are solving a riddle. The answer must be a SINGLE WORD in the "
+        f"{riddle.language} language.\n\n"
+        f"RIDDLE:\n{riddle.riddle}\n\n"
+        f"Respond with just the word, no punctuation, no explanation."
+    )
+
+
+def _clean_answer(text: str) -> str:
+    # Strip quotes/backticks/whitespace; lowercase. The on-chain leaf hash uses
+    # the exact bytes the agent reveals, so canonical normalization happens
+    # client-side here.
+    return text.strip().strip("\"'`").strip().lower().split()[0] if text else ""
+
+
+# ----- Concrete providers -----
+
+class ClaudeSolver(Solver):
+    """Anthropic Claude. Requires ANTHROPIC_API_KEY."""
+    def __init__(self, model: Optional[str] = None):
         if not os.environ.get("ANTHROPIC_API_KEY"):
             raise RuntimeError("ANTHROPIC_API_KEY not set")
-        self.model = model
+        self.model = model or os.environ.get("ARDI_CLAUDE_MODEL", "claude-sonnet-4-5-20251001")
         self._client = httpx.Client(timeout=30.0)
 
     def solve(self, riddle: Riddle) -> Optional[str]:
-        prompt = (
-            f"You are solving a riddle. The answer must be a SINGLE WORD in the "
-            f"{riddle.language} language.\n\n"
-            f"RIDDLE:\n{riddle.riddle}\n\n"
-            f"Respond with just the word, no punctuation, no explanation."
-        )
         r = self._client.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -83,23 +97,168 @@ class ClaudeSolver(Solver):
                 "model": self.model,
                 "max_tokens": 16,
                 "temperature": 0,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": [{"role": "user", "content": _build_prompt(riddle)}],
             },
         )
         if r.status_code != 200:
-            log.warning(f"LLM call failed: {r.status_code} {r.text[:200]}")
+            log.warning(f"claude call failed: {r.status_code} {r.text[:200]}")
             return None
-        text = r.json()["content"][0]["text"].strip()
-        # Strip quotes if the model wrapped its answer
-        return text.strip("\"'`").lower()
+        return _clean_answer(r.json()["content"][0]["text"])
+
+
+class OpenAICompatibleSolver(Solver):
+    """OpenAI-style /chat/completions endpoint.
+
+    Works with OpenAI itself **and** any OpenAI-compatible provider:
+    DeepSeek, Together, Groq, Mistral, OpenRouter, Fireworks, local
+    Ollama (`http://localhost:11434/v1`), vLLM, etc. Just point at the
+    right base URL + model + API key.
+
+    Args:
+      base_url:  e.g. "https://api.openai.com/v1" (default),
+                 "https://api.deepseek.com/v1",
+                 "https://api.together.xyz/v1",
+                 "https://api.groq.com/openai/v1",
+                 "https://openrouter.ai/api/v1",
+                 "http://localhost:11434/v1"  (Ollama)
+      model:     e.g. "gpt-4o-mini", "deepseek-chat", "mixtral-8x7b-instruct",
+                 "llama-3.3-70b-versatile", "qwen/qwen-2.5-72b-instruct"
+      api_key:   from env (defaults vary per provider)
+    """
+    def __init__(
+        self,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
+        self.base_url = (base_url or os.environ.get("ARDI_LLM_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+        self.model = model or os.environ.get("ARDI_LLM_MODEL", "gpt-4o-mini")
+        # api_key resolution: param → ARDI_LLM_API_KEY → OPENAI_API_KEY (back-compat)
+        self.api_key = api_key or os.environ.get("ARDI_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if not self.api_key:
+            raise RuntimeError(
+                "no LLM API key — set ARDI_LLM_API_KEY (or OPENAI_API_KEY for OpenAI). "
+                f"base_url={self.base_url}"
+            )
+        self._client = httpx.Client(timeout=30.0)
+
+    def solve(self, riddle: Riddle) -> Optional[str]:
+        r = self._client.post(
+            f"{self.base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "content-type": "application/json",
+            },
+            json={
+                "model": self.model,
+                "max_tokens": 16,
+                "temperature": 0,
+                "messages": [{"role": "user", "content": _build_prompt(riddle)}],
+            },
+        )
+        if r.status_code != 200:
+            log.warning(f"{self.base_url} call failed: {r.status_code} {r.text[:200]}")
+            return None
+        try:
+            return _clean_answer(r.json()["choices"][0]["message"]["content"])
+        except (KeyError, IndexError, TypeError) as e:
+            log.warning(f"unexpected response shape from {self.base_url}: {e} body={r.text[:200]}")
+            return None
+
+
+class GeminiSolver(Solver):
+    """Google Gemini. Requires GEMINI_API_KEY."""
+    def __init__(self, model: Optional[str] = None):
+        self.api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        if not self.api_key:
+            raise RuntimeError("GEMINI_API_KEY (or GOOGLE_API_KEY) not set")
+        self.model = model or os.environ.get("ARDI_GEMINI_MODEL", "gemini-2.0-flash")
+        self._client = httpx.Client(timeout=30.0)
+
+    def solve(self, riddle: Riddle) -> Optional[str]:
+        r = self._client.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
+            params={"key": self.api_key},
+            json={
+                "contents": [{"parts": [{"text": _build_prompt(riddle)}]}],
+                "generationConfig": {"maxOutputTokens": 16, "temperature": 0},
+            },
+        )
+        if r.status_code != 200:
+            log.warning(f"gemini call failed: {r.status_code} {r.text[:200]}")
+            return None
+        try:
+            return _clean_answer(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+        except (KeyError, IndexError, TypeError) as e:
+            log.warning(f"unexpected gemini response: {e} body={r.text[:200]}")
+            return None
 
 
 def make_solver(name: str) -> Solver:
-    if name == "stub":
+    """Build a solver by short name. Convenience wrapper around the classes
+    above; for finer control instantiate the class directly.
+
+    Recognized names:
+      stub                           — always returns 'fire' (smoke testing only)
+      claude                         — Anthropic Claude
+      openai      / gpt              — OpenAI gpt-4o-mini (default)
+      deepseek                       — DeepSeek (api.deepseek.com)
+      groq                           — Groq (Llama-3 etc, fast)
+      together                       — Together AI
+      openrouter                     — OpenRouter (any model via routing)
+      ollama                         — local Ollama (http://localhost:11434/v1)
+      gemini      / google           — Google Gemini
+      compat      / openai-compatible — generic, configure via ARDI_LLM_*
+    """
+    n = (name or "").lower()
+    if n == "stub":
         return StubSolver()
-    if name == "claude":
+    if n == "claude":
         return ClaudeSolver()
-    raise ValueError(f"unknown solver {name!r} (try: stub, claude)")
+    if n in ("openai", "gpt"):
+        return OpenAICompatibleSolver(
+            base_url="https://api.openai.com/v1",
+            model=os.environ.get("ARDI_OPENAI_MODEL", "gpt-4o-mini"),
+            api_key=os.environ.get("OPENAI_API_KEY"),
+        )
+    if n == "deepseek":
+        return OpenAICompatibleSolver(
+            base_url="https://api.deepseek.com/v1",
+            model=os.environ.get("ARDI_DEEPSEEK_MODEL", "deepseek-chat"),
+            api_key=os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("ARDI_LLM_API_KEY"),
+        )
+    if n == "groq":
+        return OpenAICompatibleSolver(
+            base_url="https://api.groq.com/openai/v1",
+            model=os.environ.get("ARDI_GROQ_MODEL", "llama-3.3-70b-versatile"),
+            api_key=os.environ.get("GROQ_API_KEY") or os.environ.get("ARDI_LLM_API_KEY"),
+        )
+    if n == "together":
+        return OpenAICompatibleSolver(
+            base_url="https://api.together.xyz/v1",
+            model=os.environ.get("ARDI_TOGETHER_MODEL", "meta-llama/Llama-3.3-70B-Instruct-Turbo"),
+            api_key=os.environ.get("TOGETHER_API_KEY") or os.environ.get("ARDI_LLM_API_KEY"),
+        )
+    if n == "openrouter":
+        return OpenAICompatibleSolver(
+            base_url="https://openrouter.ai/api/v1",
+            model=os.environ.get("ARDI_OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet"),
+            api_key=os.environ.get("OPENROUTER_API_KEY") or os.environ.get("ARDI_LLM_API_KEY"),
+        )
+    if n == "ollama":
+        return OpenAICompatibleSolver(
+            base_url=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
+            model=os.environ.get("ARDI_OLLAMA_MODEL", "llama3.2"),
+            api_key="ollama",  # Ollama ignores the key, but our client requires non-empty
+        )
+    if n in ("gemini", "google"):
+        return GeminiSolver()
+    if n in ("compat", "openai-compatible"):
+        return OpenAICompatibleSolver()  # all params from ARDI_LLM_* env
+    raise ValueError(
+        f"unknown solver {name!r}. Try: stub, claude, openai, deepseek, groq, "
+        f"together, openrouter, ollama, gemini, compat"
+    )
 
 
 # ============================================================================
@@ -301,25 +460,32 @@ def run(
     log.info(f"capped at {max_mints} mints; exiting")
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--solver", default="stub", help="stub | claude")
-    ap.add_argument("--max-mints", type=int, default=3)
-    ap.add_argument("--targets-per-epoch", type=int, default=3)
-    ap.add_argument("--state-db", default="agent_state.db")
-    ap.add_argument("--log-level", default="INFO")
-    args = ap.parse_args()
+def _load_deploy(deploy_json_loc: str) -> dict:
+    """Accept a local path OR an http(s) URL — DEPLOY_JSON works either way."""
+    if deploy_json_loc.startswith(("http://", "https://")):
+        import httpx as _httpx
+        r = _httpx.get(deploy_json_loc, timeout=10.0)
+        r.raise_for_status()
+        return r.json()
+    return json.loads(Path(deploy_json_loc).read_text())
 
-    logging.basicConfig(
-        level=args.log_level,
-        format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
-    )
 
-    deploy = json.loads(Path(os.environ["DEPLOY_JSON"]).read_text())
+def cmd_mine(args):
+    """Mining loop — replaces the legacy `--solver` flag with `mine` subcommand."""
+    from .wallet import resolve_private_key
+
+    address, pk = resolve_private_key(args.name)
+    deploy = _load_deploy(os.environ.get(
+        "DEPLOY_JSON",
+        "https://ardinals-demo.vercel.app/deployments/base-sepolia.json",
+    ))
     client = ArdiClient(
-        rpc_url=os.environ.get("BASE_RPC_URL", "http://localhost:8547"),
-        coordinator_url=os.environ.get("ARDI_COORDINATOR_URL", "http://localhost:8080"),
-        agent_private_key=os.environ["AGENT_PK"],
+        rpc_url=os.environ.get("BASE_RPC_URL", "https://sepolia.base.org"),
+        coordinator_url=os.environ.get(
+            "ARDI_COORDINATOR_URL",
+            "https://rimless-underling-bust.ngrok-free.dev",
+        ),
+        agent_private_key=pk,
         contracts={
             "ardi_nft": deploy["ardiNFT"],
             "ardi_token": deploy["ardiToken"],
@@ -331,7 +497,14 @@ def main():
         chain_id=int(deploy["chainId"]),
     )
     solver = make_solver(args.solver)
-    store = TicketStore(args.state_db)
+    state_db = args.state_db or str(Path.home() / ".ardi" / f"agent_state_{args.name or 'default'}.db")
+    store = TicketStore(state_db)
+
+    print(f"\n=== ardi-agent mine ===")
+    print(f"wallet     : {address}")
+    print(f"solver     : {args.solver}")
+    print(f"coordinator: {client.coordinator_url}")
+    print(f"state db   : {state_db}\n")
 
     try:
         run(
@@ -341,6 +514,91 @@ def main():
         )
     except KeyboardInterrupt:
         log.info("interrupted; clean shutdown")
+
+
+def _build_parser():
+    ap = argparse.ArgumentParser(
+        prog="ardi-agent",
+        description="ardi-skill — agent CLI for the Ardi WorkNet on Base Sepolia",
+    )
+    ap.add_argument("--log-level", default="INFO", help="DEBUG | INFO | WARNING")
+    sub = ap.add_subparsers(dest="cmd")
+
+    # ---- wallet ----
+    from . import wallet as wallet_mod
+    w = sub.add_parser("wallet", help="local keystore management")
+    wsub = w.add_subparsers(dest="wcmd")
+
+    wn = wsub.add_parser("new", help="create a new wallet")
+    wn.add_argument("--name", default="default", help="keystore name (default: 'default')")
+    wn.set_defaults(func=wallet_mod.cmd_wallet_new)
+
+    ws = wsub.add_parser("show", help="print address + paths for a wallet")
+    ws.add_argument("--name", default="default")
+    ws.set_defaults(func=wallet_mod.cmd_wallet_show)
+
+    wl = wsub.add_parser("list", help="list local wallets")
+    wl.set_defaults(func=wallet_mod.cmd_wallet_list)
+
+    we = wsub.add_parser("export", help="print the private key (DANGEROUS)")
+    we.add_argument("--name", default="default")
+    we.add_argument("--yes", action="store_true", help="skip confirmation prompt")
+    we.set_defaults(func=wallet_mod.cmd_wallet_export)
+
+    # ---- onboard ----
+    from . import onboard as onboard_mod
+    ob = sub.add_parser(
+        "onboard",
+        help="one-shot testnet setup: mint MockAWP + verify KYA + lock 10K bond",
+    )
+    ob.add_argument("--name", default="default", help="wallet keystore name")
+    ob.set_defaults(func=onboard_mod.cmd_onboard)
+
+    # ---- mine ----
+    m = sub.add_parser("mine", help="run the mining loop")
+    m.add_argument("--name", default="default", help="wallet keystore name")
+    m.add_argument(
+        "--solver", default="claude",
+        help="stub | claude | openai | deepseek | groq | together | openrouter | ollama | gemini | compat",
+    )
+    m.add_argument("--max-mints", type=int, default=3)
+    m.add_argument("--targets-per-epoch", type=int, default=3)
+    m.add_argument("--state-db", default=None)
+    m.set_defaults(func=cmd_mine)
+
+    # ---- legacy: bare `ardi-agent --solver claude` (no subcommand) still works ----
+    ap.add_argument("--solver", default=None, help=argparse.SUPPRESS)
+    ap.add_argument("--max-mints", type=int, default=3, help=argparse.SUPPRESS)
+    ap.add_argument("--targets-per-epoch", type=int, default=3, help=argparse.SUPPRESS)
+    ap.add_argument("--state-db", default=None, help=argparse.SUPPRESS)
+    ap.add_argument("--name", default="default", help=argparse.SUPPRESS)
+
+    return ap
+
+
+def main():
+    ap = _build_parser()
+    args = ap.parse_args()
+    logging.basicConfig(
+        level=args.log_level,
+        format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+    )
+
+    if args.cmd is None:
+        # Legacy entry: `ardi-agent --solver claude` with no subcommand → mine.
+        # Print a nudge so users discover the new CLI eventually.
+        if args.solver is None:
+            ap.print_help()
+            sys.exit(0)
+        log.info("legacy entry — consider `ardi-agent mine --solver %s` going forward", args.solver)
+        cmd_mine(args)
+        return
+
+    if args.cmd == "wallet" and not getattr(args, "wcmd", None):
+        ap.parse_args(["wallet", "--help"])
+        return
+
+    args.func(args)
 
 
 if __name__ == "__main__":
