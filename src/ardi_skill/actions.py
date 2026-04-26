@@ -179,19 +179,41 @@ def cmd_reveal(args):
 
     t = candidates[0]
     try:
-        tx_hash = client.reveal(t.epoch_id, t.word_id, t.guess, t.nonce)
-        store.mark_revealed(t.epoch_id, t.word_id)
+        result = client.reveal(t.epoch_id, t.word_id, t.guess, t.nonce)
     except Exception as e:
         _err(f"reveal failed: {e}", 6)
+
+    if not result.get("ok"):
+        # Coordinator hasn't published the answer yet — don't burn gas, retry later
+        _print({
+            "ok": False,
+            "epoch_id": t.epoch_id,
+            "word_id": t.word_id,
+            "status": result.get("status"),
+            "guess": t.guess,
+            "next": "Coordinator hasn't published the canonical answer for this slot yet. Retry in 30-60s.",
+        }, args)
+        return
+
+    tx_hash = result["tx_hash"]
+    correct = result.get("correct")
+    store.mark_revealed(t.epoch_id, t.word_id)
 
     _print({
         "ok": True,
         "epoch_id": t.epoch_id,
         "word_id": t.word_id,
         "guess": t.guess,
+        "correct": correct,
         "tx_hash": tx_hash,
         "basescan": f"https://sepolia.basescan.org/tx/{tx_hash}",
-        "next": f"after reveal window + ~30s VRF, check: ardi-agent winners --epoch {t.epoch_id} --word-id {t.word_id}",
+        "next": (
+            f"correct guess ✓ — wait for VRF, then: ardi-agent winners --epoch {t.epoch_id} --word-id {t.word_id}"
+            if correct
+            else "guess didn't match the canonical vault answer. Bond was refunded but you're not in the candidate pool. Try a different word next epoch."
+            if correct is False
+            else f"after reveal window + ~30s VRF, check: ardi-agent winners --epoch {t.epoch_id} --word-id {t.word_id}"
+        ),
     }, args)
 
 
@@ -476,28 +498,54 @@ def cmd_play(args):
     # ---- Stage 3 — wait for commit window to close ----
     wait1 = max(5, commit_deadline - int(time.time()) + 5)
     summary["wait_seconds"]["commit_window"] = wait1
-    print(f"\nwaiting {wait1}s for commit window to close + Coordinator publishAnswer…", file=sys.stderr)
+    print(f"\nwaiting {wait1}s for commit window to close…", file=sys.stderr)
     time.sleep(wait1)
 
     # ---- Stage 4 — reveal all our commits ----
+    # Each reveal call internally polls for getAnswer(...).published before
+    # sending the tx. So we don't need extra sleeping here — the SDK handles
+    # the "wait for Coordinator publishAnswer" handshake per-slot.
     for c in summary["commits"]:
         if "error" in c:
             continue
         wid = c["word_id"]
-        # Pull ticket back from store (nonce was saved there)
         tickets = [t for t in store.unrevealed() if t.epoch_id == epoch_id and t.word_id == wid]
         if not tickets:
             print(f"[{epoch_id}/{wid}] no ticket in store, skipping reveal", file=sys.stderr)
             continue
         t = tickets[0]
         try:
-            tx = client.reveal(epoch_id, wid, t.guess, t.nonce)
-            store.mark_revealed(epoch_id, wid)
-            summary["reveals"].append({"word_id": wid, "tx_hash": tx})
-            print(f"[{epoch_id}/{wid}] revealed tx={tx[:14]}…", file=sys.stderr)
+            result = client.reveal(epoch_id, wid, t.guess, t.nonce)
         except Exception as e:
-            print(f"[{epoch_id}/{wid}] reveal failed: {e}", file=sys.stderr)
+            print(f"[{epoch_id}/{wid}] reveal tx errored: {e}", file=sys.stderr)
             summary["reveals"].append({"word_id": wid, "error": str(e)})
+            continue
+
+        if not result.get("ok"):
+            # Coordinator never published in our 90s window — bond will need
+            # forfeitBond after reveal window closes. We don't burn gas here.
+            print(
+                f"[{epoch_id}/{wid}] skipped reveal: Coordinator hasn't published "
+                f"answer in 90s — call `forfeitBond` later to recover the commit bond",
+                file=sys.stderr,
+            )
+            summary["reveals"].append({
+                "word_id": wid, "skipped": "answer_not_published",
+            })
+            continue
+
+        store.mark_revealed(epoch_id, wid)
+        correct = result.get("correct")
+        verdict = "✓ correct" if correct else "✗ wrong" if correct is False else "?"
+        print(
+            f"[{epoch_id}/{wid}] revealed {verdict} tx={result['tx_hash'][:14]}…",
+            file=sys.stderr,
+        )
+        summary["reveals"].append({
+            "word_id": wid,
+            "tx_hash": result["tx_hash"],
+            "correct": correct,
+        })
 
     # ---- Stage 5 — wait for reveal window + VRF ----
     wait2 = max(10, reveal_deadline - int(time.time()) + 30)

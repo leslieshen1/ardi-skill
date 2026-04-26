@@ -121,6 +121,20 @@ EPOCH_DRAW_ABI = [
     {"type": "function", "name": "correctCount", "stateMutability": "view",
      "inputs": [{"type": "uint256"}, {"type": "uint256"}],
      "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "getAnswer", "stateMutability": "view",
+     "inputs": [{"type": "uint256", "name": "epochId"},
+                {"type": "uint256", "name": "wordId"}],
+     "outputs": [{"type": "string",  "name": "word"},
+                 {"type": "uint16",  "name": "power"},
+                 {"type": "uint8",   "name": "languageId"},
+                 {"type": "bool",    "name": "published"}]},
+    {"type": "event", "name": "Revealed", "anonymous": False,
+     "inputs": [
+         {"type": "uint256", "name": "epochId",  "indexed": True},
+         {"type": "uint256", "name": "wordId",   "indexed": True},
+         {"type": "address", "name": "agent",    "indexed": True},
+         {"type": "bool",    "name": "isCorrect"},
+     ]},
 ]
 
 ARDI_NFT_ABI = [
@@ -425,20 +439,117 @@ class ArdiClient:
             nonce=bytes(nonce), tx_hash=tx_hash,
         )
 
+    def is_answer_published(self, epoch_id: int, word_id: int) -> bool:
+        """View call — has Coordinator already publishAnswer'd for this slot?"""
+        try:
+            result = self._draw.functions.getAnswer(epoch_id, word_id).call()
+            # Returns (word, power, languageId, published)
+            return bool(result[3])
+        except Exception:
+            return False
+
+    def wait_for_answer_published(
+        self,
+        epoch_id: int,
+        word_id: int,
+        timeout: int = 90,
+        poll_interval: float = 4.0,
+    ) -> bool:
+        """Block until the Coordinator's publishAnswer tx is mined for this
+        (epoch, wordId), or timeout. Without this, calling reveal() too early
+        reverts with AnswerNotPublished, costing the agent gas + a nail-biting
+        diagnostic. Returns True if published, False on timeout."""
+        import time as _time
+        deadline = _time.time() + timeout
+        while _time.time() < deadline:
+            if self.is_answer_published(epoch_id, word_id):
+                return True
+            _time.sleep(poll_interval)
+        return False
+
+    # Sentinel returned by reveal() instead of raising — so callers can
+    # distinguish "Coordinator hasn't published yet" from "your commit hash
+    # doesn't match" (real bug) without scraping revert messages.
+    REVEAL_NOT_PUBLISHED = "ANSWER_NOT_PUBLISHED"
+
     def reveal(
         self,
         epoch_id: int,
         word_id: int,
         guess: str,
         nonce: bytes,
-    ) -> str:
-        """Reveal the previously-committed guess. Bond refunded on success."""
+        *,
+        wait_for_publish: bool = True,
+        wait_timeout: int = 90,
+    ) -> dict:
+        """Reveal a previously-committed guess.
+
+        Returns a dict:
+          { ok: True,  tx_hash: str, correct: bool }   — reveal landed
+          { ok: False, status: 'ANSWER_NOT_PUBLISHED' } — Coordinator hasn't
+            published yet (don't burn gas, retry later)
+
+        If `wait_for_publish=True` (default), the SDK polls the on-chain
+        getAnswer(...).published flag for `wait_timeout` seconds before
+        sending the tx. This avoids the most common failure mode: calling
+        reveal too soon after commit window closes, before Coordinator's
+        publishAnswer tx is mined.
+        """
+        if wait_for_publish:
+            published = self.wait_for_answer_published(
+                epoch_id, word_id, timeout=wait_timeout,
+            )
+            if not published:
+                log.warning(
+                    f"reveal: epoch={epoch_id} word={word_id} — Coordinator "
+                    f"never published in {wait_timeout}s; not sending tx"
+                )
+                return {"ok": False, "status": self.REVEAL_NOT_PUBLISHED}
+
+        # Real send. If it still reverts at this point, it's a genuine
+        # commit-mismatch (wrong nonce / wrong guess relative to commit hash).
         tx_hash = self._send(
             self._draw.functions.reveal(epoch_id, word_id, guess, nonce),
             gas=180_000,
         )
         log.info(f"reveal ok: epoch={epoch_id} word={word_id} tx={tx_hash}")
-        return tx_hash
+
+        # Parse the Revealed event log to learn whether the guess was
+        # CORRECT (entered candidate pool) or just well-formed (commit hash
+        # matched but guess != canonical answer). Big UX delta — agent now
+        # knows which words to spend gas on for inscribe.
+        is_correct = self._parse_revealed_event(tx_hash, epoch_id, word_id)
+        return {
+            "ok": True,
+            "tx_hash": tx_hash,
+            "correct": is_correct,
+        }
+
+    def _parse_revealed_event(
+        self,
+        tx_hash: str,
+        epoch_id: int,
+        word_id: int,
+    ) -> bool | None:
+        """Pull the Revealed(epochId, wordId, agent, isCorrect) event out
+        of the receipt and return its `isCorrect` flag. Returns None if the
+        event isn't found (shouldn't happen, but be defensive)."""
+        try:
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+            sig = self.w3.keccak(text="Revealed(uint256,uint256,address,bool)")
+            for L in receipt.logs:
+                if (len(L["topics"]) >= 4
+                        and L["topics"][0] == sig
+                        and int(L["topics"][1].hex(), 16) == int(epoch_id)
+                        and int(L["topics"][2].hex(), 16) == int(word_id)):
+                    # data is the un-indexed bool: 32 bytes, last byte is 0/1
+                    data = L["data"]
+                    if hasattr(data, "hex"):
+                        data = data.hex()
+                    return data.endswith("1")
+        except Exception as e:
+            log.warning(f"couldn't parse Revealed event: {e}")
+        return None
 
     def request_draw(self, epoch_id: int, word_id: int) -> str:
         """Trigger VRF for this slot. Anyone can call — costs the caller gas."""

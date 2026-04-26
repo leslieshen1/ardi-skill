@@ -368,8 +368,9 @@ def run(
                 state = client.epoch_state(t.epoch_id)
                 if state["phase"] == "reveal" and state["now"] < state["reveal_deadline"]:
                     log.info(f"resuming reveal for epoch {t.epoch_id} word {t.word_id}")
-                    client.reveal(t.epoch_id, t.word_id, t.guess, t.nonce)
-                    store.mark_revealed(t.epoch_id, t.word_id)
+                    result = client.reveal(t.epoch_id, t.word_id, t.guess, t.nonce)
+                    if result.get("ok"):
+                        store.mark_revealed(t.epoch_id, t.word_id)
                 elif state["phase"] in ("draw", "not-open"):
                     # Reveal window already closed — give up on this ticket.
                     # forfeitBond can sweep the bond; if Coordinator never
@@ -417,13 +418,21 @@ def run(
         log.info(f"sleeping {wait_s}s until reveal opens")
         time.sleep(wait_s)
 
-        # Step 6 — reveal
+        # Step 6 — reveal (SDK polls for publishAnswer per slot before sending tx)
         for t in new_tickets:
             try:
-                client.reveal(t.epoch_id, t.word_id, t.guess, t.nonce)
-                store.mark_revealed(t.epoch_id, t.word_id)
+                result = client.reveal(t.epoch_id, t.word_id, t.guess, t.nonce)
+                if result.get("ok"):
+                    store.mark_revealed(t.epoch_id, t.word_id)
+                    if result.get("correct") is False:
+                        log.info(f"word {t.word_id}: revealed but not the canonical answer")
+                else:
+                    log.warning(
+                        f"word {t.word_id}: skipping reveal ({result.get('status')}) "
+                        f"— Coordinator hasn't published; can forfeitBond later"
+                    )
             except Exception as e:
-                log.warning(f"reveal failed for word {t.word_id}: {e}")
+                log.warning(f"reveal tx errored for word {t.word_id}: {e}")
 
         # Step 7 — wait for VRF + check winners + mint
         wait_s = max(5, epoch.reveal_deadline - int(time.time()) + 30)
