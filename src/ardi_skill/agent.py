@@ -576,6 +576,58 @@ def _build_parser():
     fgf.add_argument("--yes", action="store_true", help="skip confirmation prompt")
     fgf.set_defaults(func=forge_mod.cmd_forge_fuse)
 
+    # ---- granular actions (for agent-as-driver: Claude Code, Cursor, etc.) ----
+    from . import actions as act
+    common = lambda p: (
+        p.add_argument("--name", default="default", help="wallet keystore name"),
+        p.add_argument("--json", action="store_true", help="force JSON output (default if piped)"),
+    )
+
+    pe = sub.add_parser("epoch", help="fetch current epoch + riddles (JSON)")
+    common(pe)
+    pe.set_defaults(func=act.cmd_epoch)
+
+    pc = sub.add_parser("commit", help="commit a guess (sealed) for a single wordId")
+    pc.add_argument("--word-id", type=int, required=True, dest="word_id")
+    pc.add_argument("--guess", required=True, help="your candidate answer (lowercased automatically)")
+    pc.add_argument("--epoch", type=int, default=None, help="epoch_id (defaults to current)")
+    common(pc)
+    pc.set_defaults(func=act.cmd_commit)
+
+    pr = sub.add_parser("reveal", help="reveal a previously committed guess")
+    pr.add_argument("--word-id", type=int, required=True, dest="word_id")
+    pr.add_argument("--epoch", type=int, default=None, help="epoch_id (defaults to most recent unrevealed)")
+    common(pr)
+    pr.set_defaults(func=act.cmd_reveal)
+
+    pw = sub.add_parser("winners", help="check who won (epoch, wordId) — see if you won")
+    pw.add_argument("--epoch", type=int, default=None, help="epoch_id (defaults to current)")
+    pw.add_argument("--word-id", type=int, default=None, dest="word_id",
+                    help="single wordId; omit to scan all riddles in the epoch")
+    common(pw)
+    pw.set_defaults(func=act.cmd_winners)
+
+    pi = sub.add_parser("inscribe", help="mint the Ardinal NFT (winner only)")
+    pi.add_argument("--epoch", type=int, required=True)
+    pi.add_argument("--word-id", type=int, required=True, dest="word_id")
+    common(pi)
+    pi.set_defaults(func=act.cmd_inscribe)
+
+    prd = sub.add_parser("request-draw", help="trigger VRF draw (anyone can after reveal window)")
+    prd.add_argument("--epoch", type=int, required=True)
+    prd.add_argument("--word-id", type=int, required=True, dest="word_id")
+    common(prd)
+    prd.set_defaults(func=act.cmd_request_draw)
+
+    pcl = sub.add_parser("claim", help="claim daily dual-token airdrop ($aArdi + $AWP)")
+    pcl.add_argument("--day", type=int, required=True)
+    common(pcl)
+    pcl.set_defaults(func=act.cmd_claim)
+
+    pt = sub.add_parser("tickets", help="list locally-stored unrevealed commit tickets")
+    common(pt)
+    pt.set_defaults(func=act.cmd_tickets)
+
     # ---- mine ----
     m = sub.add_parser("mine", help="run the mining loop")
     m.add_argument("--name", default="default", help="wallet keystore name")

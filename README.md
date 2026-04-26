@@ -55,6 +55,48 @@ and tx hashes are visible on [Basescan Sepolia](https://sepolia.basescan.org/).
 Override the model per provider via `ARDI_<PROVIDER>_MODEL` env, e.g.
 `ARDI_OPENAI_MODEL=gpt-4o`, `ARDI_GROQ_MODEL=llama-3.1-8b-instant`.
 
+## Agent-as-driver mode (no LLM API key needed)
+
+If you're running this **inside an LLM-driven harness** (Claude Code, Cursor
+agent mode, OpenClaw, your own wrapper) — the agent IS the solver. You don't
+want `mine` to call out to a separate LLM API; you want granular Web3 plumbing
+the agent can call between its own reasoning steps.
+
+The granular subcommands all emit JSON (auto-detected when piped, or force
+with `--json`):
+
+```bash
+# 1. agent fetches the current epoch + 14-15 riddles
+ardi-agent epoch                                    # → JSON
+
+# 2. agent solves them itself, then commits each
+ardi-agent commit --word-id 5 --guess fire          # → tx hash + nonce stored locally
+
+# 3. wait for commit window (~165s) — Coordinator publishes answers
+# 4. agent reveals (nonce auto-pulled from the local TicketStore)
+ardi-agent reveal --word-id 5                       # → tx hash
+
+# 5. wait for reveal window (~60s) + VRF (~10s)
+# 6. trigger draw if no one else has yet (anyone can)
+ardi-agent request-draw --epoch 100004 --word-id 5
+
+# 7. check who won
+ardi-agent winners --epoch 100004 --word-id 5       # → { you_won: true/false, … }
+
+# 8. if you won: mint the NFT
+ardi-agent inscribe --epoch 100004 --word-id 5
+
+# 9. claim daily airdrop (when settled)
+ardi-agent claim --day 1
+```
+
+`ardi-agent tickets` lists locally-stored unrevealed commits — useful for
+crash recovery.
+
+This is the right way for an LLM agent to "mine" — the agent uses its own
+reasoning to solve riddles, the skill is just a Web3 thin client. No
+separate API key needed.
+
 ## Full CLI
 
 ```bash
