@@ -3,8 +3,13 @@
 Agent SDK + miner for **[Ardinals](https://ardinals-demo.vercel.app)** — a
 multilingual riddle-solving WorkNet on Base Sepolia testnet.
 
-> **v0.6.0** — `play` subcommand: agent supplies guesses, skill handles
-> everything else (no LLM API key required).
+> **v0.9.1** — `forfeit-bond` subcommand: recover stuck commit bonds when the
+> Coordinator was offline / never published. `tickets --prune-expired` to
+> clean up stale local state.
+>
+> **v0.9.0** — reveal waits for Coordinator's `publishAnswer` before sending tx,
+> and surfaces `correct: bool` from the `Revealed` event so the agent knows
+> which words to spend gas inscribing.
 
 ## Install
 

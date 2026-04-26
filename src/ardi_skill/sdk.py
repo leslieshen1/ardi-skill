@@ -135,6 +135,30 @@ EPOCH_DRAW_ABI = [
          {"type": "address", "name": "agent",    "indexed": True},
          {"type": "bool",    "name": "isCorrect"},
      ]},
+    # forfeitBond — sweep a stale commit's bond after the reveal window has
+    # closed. Two-branch destination, decided by `answers[epoch][wordId].published`:
+    #   - published = true  → bond → treasury  (agent committed but failed to reveal)
+    #   - published = false → bond → agent     (Coordinator failed; no penalty)
+    # Anyone can call (the destination is state-determined, not caller-determined).
+    {"type": "function", "name": "forfeitBond", "stateMutability": "nonpayable",
+     "inputs": [{"type": "uint256", "name": "epochId"},
+                {"type": "uint256", "name": "wordId"},
+                {"type": "address", "name": "agent"}],
+     "outputs": []},
+    {"type": "event", "name": "BondForfeited", "anonymous": False,
+     "inputs": [
+         {"type": "uint256", "name": "epochId", "indexed": True},
+         {"type": "uint256", "name": "wordId",  "indexed": True},
+         {"type": "address", "name": "agent",   "indexed": True},
+         {"type": "uint256", "name": "amount"},
+     ]},
+    {"type": "event", "name": "BondRefundedNoAnswer", "anonymous": False,
+     "inputs": [
+         {"type": "uint256", "name": "epochId", "indexed": True},
+         {"type": "uint256", "name": "wordId",  "indexed": True},
+         {"type": "address", "name": "agent",   "indexed": True},
+         {"type": "uint256", "name": "amount"},
+     ]},
 ]
 
 ARDI_NFT_ABI = [
@@ -665,6 +689,86 @@ class ArdiClient:
 
     def mint_count(self) -> int:
         return int(self._nft.functions.agentMintCount(self.address).call())
+
+    # ----------------------------------------------------------- Bond recovery --
+
+    def forfeit_bond(
+        self,
+        epoch_id: int,
+        word_id: int,
+        agent: str | None = None,
+    ) -> dict:
+        """Sweep a stale commit's bond after the reveal window has closed.
+
+        The on-chain branch is decided by `answers[epoch][wordId].published`:
+          - published=True  → bond goes to treasury (agent committed but never
+            revealed; this is the anti-grief path).
+          - published=False → bond is **refunded to the original committer**
+            (Coordinator failed; no penalty for the agent).
+
+        Anyone can call this — the destination is state-determined. Most
+        often the agent calls it themselves to recover a stuck bond when
+        the Coordinator was offline / never published the canonical answer.
+
+        Returns:
+            { ok: True, tx_hash, refunded: bool, amount_wei: int }
+              refunded=True  → bond came back to `agent`
+              refunded=False → bond was forfeited to treasury
+
+        Raises if the call reverts (reveal window not closed yet, no commit
+        exists, already revealed, already claimed, etc.). Caller should
+        handle by checking `epoch_state(epoch_id)["phase"] == "draw"` first.
+        """
+        target = Web3.to_checksum_address(agent) if agent else self.address
+        tx_hash = self._send(
+            self._draw.functions.forfeitBond(epoch_id, word_id, target),
+            gas=120_000,
+        )
+        refunded, amount = self._parse_forfeit_result(tx_hash, epoch_id, word_id)
+        log.info(
+            f"forfeit_bond ok: epoch={epoch_id} word={word_id} agent={target} "
+            f"refunded={refunded} amount={amount} tx={tx_hash}"
+        )
+        return {
+            "ok": True,
+            "tx_hash": tx_hash,
+            "refunded": refunded,
+            "amount_wei": amount,
+        }
+
+    def _parse_forfeit_result(
+        self,
+        tx_hash: str,
+        epoch_id: int,
+        word_id: int,
+    ) -> tuple[bool, int]:
+        """Return (refunded_to_agent, amount_wei) from the receipt's events.
+        refunded=True means BondRefundedNoAnswer; False means BondForfeited
+        (treasury). Defaults to (False, 0) if neither event is found."""
+        try:
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+            sig_refund = self.w3.keccak(text="BondRefundedNoAnswer(uint256,uint256,address,uint256)")
+            sig_forfeit = self.w3.keccak(text="BondForfeited(uint256,uint256,address,uint256)")
+            for L in receipt.logs:
+                if len(L["topics"]) < 4:
+                    continue
+                if (int(L["topics"][1].hex(), 16) != int(epoch_id)
+                        or int(L["topics"][2].hex(), 16) != int(word_id)):
+                    continue
+                # data is the un-indexed amount: 32 bytes uint256
+                data = L["data"]
+                if hasattr(data, "hex"):
+                    data = data.hex()
+                if data.startswith("0x"):
+                    data = data[2:]
+                amount = int(data[:64], 16) if data else 0
+                if L["topics"][0] == sig_refund:
+                    return True, amount
+                if L["topics"][0] == sig_forfeit:
+                    return False, amount
+        except Exception as e:
+            log.warning(f"couldn't parse forfeit events: {e}")
+        return False, 0
 
     # ----------------------------------------------------------- Fusion --
 

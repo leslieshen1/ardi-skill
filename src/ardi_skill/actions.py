@@ -378,9 +378,44 @@ def cmd_claim(args):
 # ============================================================================
 
 def cmd_tickets(args):
+    """List unrevealed local tickets. With --prune-expired, also mark any
+    tickets whose reveal window has closed as revealed in the local store
+    (their bonds are now stuck on-chain and can only be recovered via
+    `ardi-agent forfeit-bond`). This stops `reveal` from picking them up
+    again and clears the noise for the agent."""
     store = TicketStore(_store_path(args.name))
     tickets = store.unrevealed()
-    _print({
+
+    pruned: list[dict] = []
+    if getattr(args, "prune_expired", False):
+        # Need a client to read on-chain reveal_deadline per epoch.
+        client = _make_client(args.name)
+        import time as _t
+        now = int(_t.time())
+        seen: dict[int, dict] = {}
+        for t in tickets:
+            try:
+                state = seen.get(t.epoch_id) or client.epoch_state(t.epoch_id)
+                seen[t.epoch_id] = state
+            except Exception:
+                continue
+            # phase=='draw' means reveal window has closed — ticket can no longer
+            # be revealed; bond is locked on-chain pending forfeitBond().
+            if state.get("exists") and now >= state.get("reveal_deadline", 0):
+                store.mark_revealed(t.epoch_id, t.word_id)
+                pruned.append({
+                    "epoch_id": t.epoch_id,
+                    "word_id": t.word_id,
+                    "guess": t.guess,
+                    "tx_hash": t.tx_hash,
+                    "bond_recoverable_via": (
+                        f"ardi-agent forfeit-bond --epoch {t.epoch_id} --word-id {t.word_id}"
+                    ),
+                })
+        # Re-read the unrevealed set after pruning
+        tickets = store.unrevealed()
+
+    out = {
         "ok": True,
         "store_db": _store_path(args.name),
         "unrevealed": [
@@ -392,6 +427,86 @@ def cmd_tickets(args):
             }
             for t in tickets
         ],
+    }
+    if getattr(args, "prune_expired", False):
+        out["pruned"] = pruned
+        out["pruned_count"] = len(pruned)
+    _print(out, args)
+
+
+# ============================================================================
+# forfeit-bond — recover a stuck commit bond after reveal window closed
+# ============================================================================
+
+def cmd_forfeit_bond(args):
+    """Call ArdiEpochDraw.forfeitBond() to settle a stale commit's bond.
+
+    Two outcomes, decided on-chain by `getAnswer(epoch, word).published`:
+      - published=True   → bond is forfeited to treasury (agent failed to reveal)
+      - published=False  → bond is refunded to the original committer
+                           (Coordinator never published; no penalty)
+
+    Defaults to settling the caller's own bond (--agent omitted). Pass
+    --agent ADDR to settle someone else's stale bond — useful for the
+    Coordinator operator sweeping abandoned commits.
+    """
+    client = _make_client(args.name)
+    if args.epoch is None or args.word_id is None:
+        _err("--epoch and --word-id are required", 7)
+
+    # Read on-chain phase first; clearer error than the contract revert.
+    try:
+        state = client.epoch_state(args.epoch)
+    except Exception as e:
+        _err(f"couldn't read epoch state: {e}", 12)
+    if not state.get("exists"):
+        _err(f"epoch {args.epoch} doesn't exist on-chain", 12)
+    import time as _t
+    now = int(_t.time())
+    if now < state.get("reveal_deadline", 0):
+        remaining = state["reveal_deadline"] - now
+        _err(
+            f"reveal window for epoch {args.epoch} hasn't closed yet "
+            f"({remaining}s remaining). forfeitBond can only run after that.",
+            13,
+        )
+
+    target_agent = args.agent or client.address
+    # Pre-flight: was the answer published? Surface the expected destination
+    # so the user isn't surprised when their bond doesn't come back.
+    try:
+        published = client.is_answer_published(args.epoch, args.word_id)
+    except Exception:
+        published = None
+
+    try:
+        result = client.forfeit_bond(args.epoch, args.word_id, agent=args.agent)
+    except Exception as e:
+        # Common reverts: NoCommit, AlreadyRevealed, BondAlreadyClaimed.
+        _err(f"forfeit_bond failed: {e}", 14)
+
+    # Local cleanup: mark the corresponding ticket as revealed so it stops
+    # showing up in `ardi-agent tickets`.
+    if not args.agent or args.agent.lower() == client.address.lower():
+        store = TicketStore(_store_path(args.name))
+        store.mark_revealed(args.epoch, args.word_id)
+
+    _print({
+        "ok": True,
+        "epoch_id": args.epoch,
+        "word_id": args.word_id,
+        "agent": target_agent,
+        "answer_was_published": published,
+        "refunded_to_agent": result.get("refunded"),
+        "amount_wei": result.get("amount_wei"),
+        "tx_hash": result.get("tx_hash"),
+        "basescan": f"https://sepolia.basescan.org/tx/{result.get('tx_hash')}",
+        "next": (
+            "bond refunded ✓ — your wallet ETH balance should be back up"
+            if result.get("refunded")
+            else "bond forfeited to treasury (you committed but didn't reveal — "
+                 "next time, run `ardi-agent reveal` after the commit window closes)"
+        ),
     }, args)
 
 

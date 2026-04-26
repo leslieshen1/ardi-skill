@@ -653,8 +653,37 @@ def _build_parser():
     pcl.set_defaults(func=act.cmd_claim)
 
     pt = sub.add_parser("tickets", help="list locally-stored unrevealed commit tickets")
+    pt.add_argument(
+        "--prune-expired", action="store_true", dest="prune_expired",
+        help="mark tickets whose on-chain reveal window has closed as revealed "
+             "in the local store (their bonds are recoverable via `forfeit-bond`)",
+    )
     common(pt)
     pt.set_defaults(func=act.cmd_tickets)
+
+    pfb = sub.add_parser(
+        "forfeit-bond",
+        help="recover a stuck commit bond after reveal window closed",
+        description="""\
+After the reveal window closes for an (epoch, wordId), any unrevealed
+commits leave the bond locked in the contract. forfeitBond settles it:
+
+  - If the Coordinator published the canonical answer, the bond is
+    forfeited to the treasury (you committed but failed to reveal).
+  - If the Coordinator never published, the bond is REFUNDED to you
+    (no penalty for Coordinator failure).
+
+Anyone can call this — destination is decided on-chain by state, not
+caller. Most often you call it on yourself to clean up.""",
+    )
+    pfb.add_argument("--epoch", type=int, required=True)
+    pfb.add_argument("--word-id", type=int, required=True, dest="word_id")
+    pfb.add_argument(
+        "--agent", default=None,
+        help="address whose bond to settle (defaults to your own wallet)",
+    )
+    common(pfb)
+    pfb.set_defaults(func=act.cmd_forfeit_bond)
 
     pp = sub.add_parser(
         "play",
