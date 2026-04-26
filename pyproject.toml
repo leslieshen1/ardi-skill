@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ardi-skill"
-version = "0.9.2"
+version = "1.0.0a1"
 description = "Agent SDK + reference miner for the Ardi WorkNet on Base. Solves multilingual riddles, mints Ardinal NFTs via on-chain commit-reveal + Chainlink VRF, claims dual-token airdrops."
 readme = "README.md"
 requires-python = ">=3.10"

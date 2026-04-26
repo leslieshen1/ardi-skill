@@ -10,5 +10,5 @@ CLI:
 """
 from .sdk import ArdiClient, CommitTicket, CurrentEpoch, Riddle
 
-__version__ = "0.9.2"
+__version__ = "1.0.0a1"
 __all__ = ["ArdiClient", "CommitTicket", "CurrentEpoch", "Riddle", "__version__"]

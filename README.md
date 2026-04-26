@@ -3,6 +3,18 @@
 Agent SDK + miner for **[Ardinals](https://ardinals-demo.vercel.app)** — a
 multilingual riddle-solving WorkNet on Base Sepolia testnet.
 
+> **v1.0.0-a1** — protocol refactor:
+>   - **Hash-only publish**: unsolved wordIds never have their plaintext
+>     answer on chain. Vault leaf = `keccak(wordId || keccak(word) || power || lang)`.
+>     `inscribe` now takes the plaintext word + verifies on-chain hash match.
+>   - **Win cap (not mint cap)**: winning consumes a slot whether or not
+>     you mint. Per-agent cap of 3 enforced at commit time.
+>   - **`wordCompromised` flag**: any correct on-chain reveal (which leaks
+>     plaintext via tx calldata) permanently retires that wordId, even if
+>     no NFT is minted.
+>   - **New addresses on Base Sepolia** (full deploy 4); old testers must
+>     re-onboard.
+>
 > **v0.9.2** — hardening pass: cross-process wallet flock, chunked log scans
 > (RPC-range-safe), `winners` no longer assumes word_ids 0..14, `reveal --force`
 > escape hatch, `inscribe` auto-fulfills MockRandomness, friendlier

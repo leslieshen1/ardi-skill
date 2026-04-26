@@ -140,13 +140,22 @@ EPOCH_DRAW_ABI = [
     {"type": "function", "name": "correctCount", "stateMutability": "view",
      "inputs": [{"type": "uint256"}, {"type": "uint256"}],
      "outputs": [{"type": "uint256"}]},
+    # v1.0: getAnswer returns wordHash (not plaintext word). The plaintext is
+    # supplied by the winner at inscribe time and verified against this hash.
+    # For unsolved wordIds, plaintext never goes on chain.
     {"type": "function", "name": "getAnswer", "stateMutability": "view",
      "inputs": [{"type": "uint256", "name": "epochId"},
                 {"type": "uint256", "name": "wordId"}],
-     "outputs": [{"type": "string",  "name": "word"},
+     "outputs": [{"type": "bytes32", "name": "wordHash"},
                  {"type": "uint16",  "name": "power"},
                  {"type": "uint8",   "name": "languageId"},
                  {"type": "bool",    "name": "published"}]},
+    {"type": "function", "name": "agentWinCount", "stateMutability": "view",
+     "inputs": [{"type": "address"}], "outputs": [{"type": "uint8"}]},
+    {"type": "function", "name": "MAX_WINS_PER_AGENT", "stateMutability": "view",
+     "inputs": [], "outputs": [{"type": "uint8"}]},
+    {"type": "function", "name": "wordCompromised", "stateMutability": "view",
+     "inputs": [{"type": "uint256"}], "outputs": [{"type": "bool"}]},
     {"type": "event", "name": "Revealed", "anonymous": False,
      "inputs": [
          {"type": "uint256", "name": "epochId",  "indexed": True},
@@ -181,9 +190,13 @@ EPOCH_DRAW_ABI = [
 ]
 
 ARDI_NFT_ABI = [
+    # v1.0: inscribe takes plaintext word + verifies on-chain hash match.
+    # The contract reads (wordHash, power, lang) from EpochDraw and rejects
+    # any word whose keccak doesn't equal wordHash.
     {"type": "function", "name": "inscribe", "stateMutability": "nonpayable",
-     "inputs": [{"type": "uint64", "name": "epochId"},
-                {"type": "uint256", "name": "wordId"}],
+     "inputs": [{"type": "uint64",  "name": "epochId"},
+                {"type": "uint256", "name": "wordId"},
+                {"type": "string",  "name": "word"}],
      "outputs": []},
     {"type": "function", "name": "fuse", "stateMutability": "nonpayable",
      "inputs": [{"type": "uint256", "name": "tokenIdA"},
@@ -851,15 +864,40 @@ class ArdiClient:
 
     # ----------------------------------------------------------- Inscribe --
 
-    def inscribe(self, epoch_id: int, word_id: int) -> str:
-        """Mint the Ardinal — only callable if `winner_of(epoch, word) == self.address`."""
+    def inscribe(self, epoch_id: int, word_id: int, word: str) -> str:
+        """Mint the Ardinal. v1.0: caller must supply the plaintext `word` —
+        the contract verifies `keccak256(word) == answer.wordHash` (the
+        published hash). Caller must be the winner_of(epoch, word).
+
+        Typical flow: agent committed `guess`; if their reveal had
+        `correct=True` and they won the VRF, they pass that same `guess`
+        in here. The TicketStore keeps it across restarts so this is
+        always recoverable."""
         return self._send(
-            self._nft.functions.inscribe(epoch_id, word_id),
+            self._nft.functions.inscribe(epoch_id, word_id, word),
             gas=300_000,
         )
 
     def mint_count(self) -> int:
+        """How many NFTs this agent has actually inscribed.
+        For "wins consumed" use win_count() — that's the cap-binding number."""
         return int(self._nft.functions.agentMintCount(self.address).call())
+
+    def win_count(self) -> int:
+        """How many lottery wins this agent has accumulated. Increments at
+        VRF callback (whether the win is later inscribed or not). The
+        on-chain cap is enforced against THIS counter, not mint_count."""
+        return int(self._draw.functions.agentWinCount(self.address).call())
+
+    def max_wins(self) -> int:
+        """Per-agent win cap, read from EpochDraw.MAX_WINS_PER_AGENT."""
+        return int(self._draw.functions.MAX_WINS_PER_AGENT().call())
+
+    def is_word_compromised(self, word_id: int) -> bool:
+        """True iff this wordId has had at least one correct on-chain reveal —
+        in which case its plaintext is leaked via tx calldata and the
+        Coordinator must permanently exclude it from selection."""
+        return bool(self._draw.functions.wordCompromised(word_id).call())
 
     # ----------------------------------------------------------- Bond recovery --
 

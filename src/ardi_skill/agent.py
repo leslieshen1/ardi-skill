@@ -468,7 +468,9 @@ def run(
 
                 if winner.lower() == client.address.lower():
                     log.info(f"WON epoch {t.epoch_id} word {t.word_id} — minting")
-                    client.inscribe(t.epoch_id, t.word_id)
+                    # v1.0: inscribe needs plaintext word. We have it from the
+                    # original ticket (guess that revealed correctly to win).
+                    client.inscribe(t.epoch_id, t.word_id, t.guess)
                 else:
                     log.info(f"lost epoch {t.epoch_id} word {t.word_id} (winner={winner[:10]}...)")
             except Exception as e:
@@ -654,6 +656,13 @@ def _build_parser():
     pi = sub.add_parser("inscribe", help="mint the Ardinal NFT (winner only)")
     pi.add_argument("--epoch", type=int, required=True)
     pi.add_argument("--word-id", type=int, required=True, dest="word_id")
+    pi.add_argument(
+        "--word", default=None,
+        help="plaintext canonical word. v1.0+ requires this on chain "
+             "(contract verifies keccak(word)==wordHash). Auto-pulled "
+             "from local TicketStore if you committed via this wallet; "
+             "pass explicitly if minting from a different machine.",
+    )
     common(pi)
     pi.set_defaults(func=act.cmd_inscribe)
 

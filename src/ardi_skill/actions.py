@@ -342,6 +342,32 @@ def cmd_inscribe(args):
     if args.epoch is None:
         _err("--epoch is required for inscribe", 7)
 
+    # v1.0: inscribe needs the plaintext `word`. Resolve it in this order:
+    #   1. --word CLI flag (explicit)
+    #   2. TicketStore lookup by (epoch, wordId) — if we committed/revealed
+    #      this guess locally, we have the plaintext on disk.
+    word = (args.word or "").strip().lower() or None
+    if not word:
+        store = TicketStore(_store_path(args.name))
+        # mark_revealed sets revealed=1 but doesn't delete the row, so this
+        # works whether reveal already happened or not.
+        with store._conn() as conn:
+            row = conn.execute(
+                "SELECT guess FROM tickets WHERE epoch_id = ? AND word_id = ?",
+                (args.epoch, args.word_id),
+            ).fetchone()
+        if row:
+            word = row["guess"]
+    if not word:
+        _err(
+            f"can't determine the plaintext word for "
+            f"(epoch={args.epoch}, wordId={args.word_id}). v1.0 inscribe "
+            f"needs it (the contract verifies keccak(word)==wordHash). "
+            f"Pass --word explicitly, or run inscribe from the same wallet "
+            f"that committed (state in {_store_path(args.name)}).",
+            8,
+        )
+
     # Sanity check: are we actually the winner?
     winner = client.winner_of(args.epoch, args.word_id)
     zero = winner == "0x0000000000000000000000000000000000000000"
@@ -353,7 +379,6 @@ def cmd_inscribe(args):
         try:
             tx = client.fulfill_pending_for(args.epoch, args.word_id)
             if tx:
-                # Re-read winner after fulfill
                 winner = client.winner_of(args.epoch, args.word_id)
                 zero = winner == "0x0000000000000000000000000000000000000000"
         except Exception as e:
@@ -368,8 +393,19 @@ def cmd_inscribe(args):
         )
 
     try:
-        tx_hash = client.inscribe(args.epoch, args.word_id)
+        tx_hash = client.inscribe(args.epoch, args.word_id, word)
     except Exception as e:
+        # Common revert path under v1.0: the supplied word's hash doesn't
+        # match the published hash. Surface a focused hint.
+        msg = str(e)
+        if "WordMismatch" in msg or "word" in msg.lower():
+            _err(
+                f"inscribe failed: {e}\n"
+                f"Hint: v1.0 verifies keccak256(word)==wordHash on chain. "
+                f"The word '{word}' didn't match. Check the original commit "
+                f"or pass --word with the exact canonical answer.",
+                9,
+            )
         _err(f"inscribe failed: {e}", 9)
 
     token_id = args.word_id + 1  # tokenId convention in ArdiNFT
@@ -377,6 +413,7 @@ def cmd_inscribe(args):
         "ok": True,
         "epoch_id": args.epoch,
         "word_id": args.word_id,
+        "word": word,
         "token_id": token_id,
         "tx_hash": tx_hash,
         "basescan_tx": f"https://sepolia.basescan.org/tx/{tx_hash}",
@@ -780,10 +817,13 @@ def cmd_play(args):
             })
             print(f"[{epoch_id}/{wid}] winner = {winner[:10]}…{' (YOU!)' if you_won else ''}", file=sys.stderr)
             if you_won:
+                # v1.0: inscribe needs plaintext word. We have it from the
+                # original commit guess (assumed correct since we won).
+                guess = answers.get(wid, "")
                 try:
-                    tx = client.inscribe(epoch_id, wid)
+                    tx = client.inscribe(epoch_id, wid, guess)
                     summary["inscriptions"].append({
-                        "word_id": wid, "token_id": wid + 1, "tx_hash": tx,
+                        "word_id": wid, "word": guess, "token_id": wid + 1, "tx_hash": tx,
                     })
                     print(f"[{epoch_id}/{wid}] ✓ INSCRIBED tokenId={wid + 1} tx={tx[:14]}…", file=sys.stderr)
                 except Exception as e:
