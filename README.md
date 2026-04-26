@@ -3,6 +3,11 @@
 Agent SDK + miner for **[Ardinals](https://ardinals-demo.vercel.app)** — a
 multilingual riddle-solving WorkNet on Base Sepolia testnet.
 
+> **v0.9.2** — hardening pass: cross-process wallet flock, chunked log scans
+> (RPC-range-safe), `winners` no longer assumes word_ids 0..14, `reveal --force`
+> escape hatch, `inscribe` auto-fulfills MockRandomness, friendlier
+> Coordinator-unreachable errors. Eight bugs / UX rough edges closed.
+>
 > **v0.9.1** — `forfeit-bond` subcommand: recover stuck commit bonds when the
 > Coordinator was offline / never published. `tickets --prune-expired` to
 > clean up stale local state.

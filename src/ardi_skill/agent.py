@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Optional
 
 import httpx
-from .sdk import ArdiClient, CommitTicket, CurrentEpoch, Riddle
+from .sdk import ArdiClient, CommitTicket, CoordinatorUnreachableError, CurrentEpoch, Riddle
 
 
 log = logging.getLogger("ardi.agent")
@@ -383,6 +383,16 @@ def run(
         # Step 3 — fetch current epoch
         try:
             epoch = client.fetch_current_epoch()
+        except CoordinatorUnreachableError as e:
+            # ngrok URLs rotate frequently — surface the recovery hint
+            # but keep the loop alive so a config-flip + restart resumes work.
+            log.warning(
+                f"Coordinator unreachable; sleeping 60s before retry. "
+                f"If this persists, set ARDI_COORDINATOR_URL to the current "
+                f"tunnel and restart. Detail: {str(e).splitlines()[0]}"
+            )
+            time.sleep(60)
+            continue
         except Exception as e:
             log.warning(f"fetch_current_epoch failed: {e}; retrying in 30s")
             time.sleep(30)
@@ -625,6 +635,12 @@ def _build_parser():
     pr = sub.add_parser("reveal", help="reveal a previously committed guess")
     pr.add_argument("--word-id", type=int, required=True, dest="word_id")
     pr.add_argument("--epoch", type=int, default=None, help="epoch_id (defaults to most recent unrevealed)")
+    pr.add_argument(
+        "--force", action="store_true",
+        help="skip the on-chain `getAnswer.published` poll and send the "
+             "reveal tx directly. Use when you've verified externally that "
+             "the Coordinator has already published (RPC may be flaky).",
+    )
     common(pr)
     pr.set_defaults(func=act.cmd_reveal)
 

@@ -50,9 +50,12 @@ reveal completes.
 from __future__ import annotations
 
 import logging
+import os
 import secrets
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import httpx
@@ -60,7 +63,23 @@ from eth_account import Account
 from eth_utils import keccak
 from web3 import Web3
 
+# fcntl is POSIX-only — the cross-process wallet lock is a no-op on Windows.
+try:
+    import fcntl  # type: ignore
+    _HAS_FCNTL = True
+except ImportError:
+    _HAS_FCNTL = False
+
 log = logging.getLogger("ardi.sdk")
+
+
+class CoordinatorUnreachableError(RuntimeError):
+    """Raised when the Coordinator HTTP endpoint can't be reached.
+
+    The default Coordinator URL points at a developer ngrok tunnel which
+    rotates regularly. When it's down, the underlying httpx error is
+    cryptic; this wrapper makes the recovery path obvious.
+    """
 
 
 # ============================================================================
@@ -303,6 +322,104 @@ class ArdiClient:
         """Public read-only view of the resolved checksum addresses."""
         return dict(self._contracts)
 
+    # ------------------------------------------------ cross-process lock --
+
+    @contextmanager
+    def _wallet_lock(self):
+        """Per-wallet POSIX flock. Serializes _send across processes that
+        share the same private key — eliminates the cross-process nonce race
+        that the in-process monotonic cache can't see (e.g. running both
+        `ardi-agent mine` and `ardi-agent play` against the same wallet).
+
+        On Windows / no-fcntl environments this is a no-op; the in-process
+        nonce cache is still in effect, so it's only the multi-process case
+        that degrades.
+        """
+        if not _HAS_FCNTL:
+            yield
+            return
+        lock_dir = Path(
+            os.environ.get("ARDI_HOME", str(Path.home() / ".ardi"))
+        ) / "locks"
+        lock_dir.mkdir(parents=True, exist_ok=True)
+        lock_path = lock_dir / f"{self._account.address.lower()}.lock"
+        f = open(lock_path, "w")
+        try:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            yield
+        finally:
+            try:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            except Exception:
+                pass
+            f.close()
+
+    # ------------------------------------------------------ log scan helper --
+
+    def _get_logs_chunked(
+        self,
+        address: str,
+        topics: list,
+        lookback_blocks: int = 6000,
+        chunk_size: int = 1000,
+    ) -> list:
+        """get_logs but resilient to public-RPC range limits.
+
+        Many RPCs cap eth_getLogs to 1024–2048 blocks per call; querying
+        5000 in one shot returns 400/-32600. We walk backwards in chunks,
+        and on errors halve the chunk size and retry once before moving on.
+        Returns logs in chronological order (oldest first) so callers can
+        `max(..., key=blockNumber)` deterministically.
+        """
+        latest = self.w3.eth.block_number
+        end = latest
+        floor = max(0, latest - lookback_blocks)
+        all_logs: list = []
+        cur_chunk = chunk_size
+        while end >= floor:
+            from_b = max(floor, end - cur_chunk + 1)
+            try:
+                logs = self.w3.eth.get_logs({
+                    "address": address,
+                    "topics": topics,
+                    "fromBlock": from_b,
+                    "toBlock": end,
+                })
+                all_logs.extend(logs)
+                end = from_b - 1
+            except Exception as e:
+                # Halve chunk size and retry the same range; if already at
+                # the floor, give up on this shard and move on.
+                if cur_chunk > 100:
+                    cur_chunk = max(100, cur_chunk // 2)
+                    log.debug(f"get_logs range too large, retrying with chunk={cur_chunk}: {e}")
+                    continue
+                log.warning(f"get_logs failed at [{from_b},{end}], skipping: {e}")
+                end = from_b - 1
+        all_logs.sort(key=lambda L: (L["blockNumber"], L.get("logIndex", 0)))
+        return all_logs
+
+    # --------------------------------------------------------- coord HTTP --
+
+    def _coord_request(self, method: str, path: str, **kw):
+        """Wrapper around self._http.{get,post} that converts cryptic
+        connection errors into a CoordinatorUnreachableError with the
+        recovery hint baked in. Other HTTP errors pass through."""
+        url = f"{self.coordinator_url}{path}"
+        try:
+            r = self._http.request(method, url, **kw)
+        except (httpx.ConnectError, httpx.ConnectTimeout,
+                httpx.ReadTimeout, httpx.ReadError) as e:
+            raise CoordinatorUnreachableError(
+                f"Coordinator not reachable at {self.coordinator_url}\n"
+                f"  → original: {type(e).__name__}: {e}\n\n"
+                f"The default URL points at a developer ngrok tunnel which "
+                f"rotates frequently. Ask the operator for the current URL "
+                f"and re-run with:\n"
+                f"    export ARDI_COORDINATOR_URL=https://<new-tunnel>\n"
+            ) from e
+        return r
+
     # -------------------------------------------------------------------- tx --
 
     # Nonce-related transient errors that we retry by re-reading the chain's
@@ -332,7 +449,9 @@ class ArdiClient:
           1. Use the 'pending' nonce tag.
           2. Layer a local monotonic cache on top so we never reuse a slot
              we've already burned in this process.
-          3. Retry on `nonce too low` / `replacement transaction underpriced` /
+          3. **POSIX flock** (`_wallet_lock`) so other processes sharing
+             the same private key block here instead of racing nonces.
+          4. Retry on `nonce too low` / `replacement transaction underpriced` /
              `already known` — bust the cache, sleep briefly, re-read.
 
         On success, advance the cache exactly once (after `send_raw_transaction`
@@ -343,47 +462,51 @@ class ArdiClient:
         addr = self._account.address
         last_err: Exception | None = None
 
-        for attempt in range(max_attempts):
-            chain_nonce = self.w3.eth.get_transaction_count(addr, "pending")
-            cached = getattr(self, "_last_nonce", -1)
-            # First attempt: trust the cache. Retries: trust the chain.
-            nonce = max(chain_nonce, cached + 1) if attempt == 0 else chain_nonce
+        # Hold the wallet flock for the entire build → sign → send → receipt
+        # cycle. This serializes _send across processes that share the same
+        # private key, eliminating cross-process nonce races.
+        with self._wallet_lock():
+            for attempt in range(max_attempts):
+                chain_nonce = self.w3.eth.get_transaction_count(addr, "pending")
+                cached = getattr(self, "_last_nonce", -1)
+                # First attempt: trust the cache. Retries: trust the chain.
+                nonce = max(chain_nonce, cached + 1) if attempt == 0 else chain_nonce
 
-            tx = contract_call.build_transaction({
-                "from": addr,
-                "nonce": nonce,
-                "chainId": self.chain_id,
-                "gasPrice": self.w3.eth.gas_price,
-                "value": value,
-                "gas": gas or self._estimate_gas(contract_call, value),
-            })
-            signed = self._account.sign_transaction(tx)
+                tx = contract_call.build_transaction({
+                    "from": addr,
+                    "nonce": nonce,
+                    "chainId": self.chain_id,
+                    "gasPrice": self.w3.eth.gas_price,
+                    "value": value,
+                    "gas": gas or self._estimate_gas(contract_call, value),
+                })
+                signed = self._account.sign_transaction(tx)
 
-            try:
-                h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
-            except Exception as e:
-                last_err = e
-                msg = str(e).lower()
-                if any(s.lower() in msg for s in self._NONCE_TRANSIENT):
-                    log.warning(
-                        "nonce-transient on attempt %d (nonce=%d, chain=%d): %s — retrying",
-                        attempt + 1, nonce, chain_nonce, msg[:120],
-                    )
-                    self._last_nonce = -1            # bust cache
-                    _time.sleep(2.0 + attempt)        # backoff
-                    continue
-                raise
+                try:
+                    h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+                except Exception as e:
+                    last_err = e
+                    msg = str(e).lower()
+                    if any(s.lower() in msg for s in self._NONCE_TRANSIENT):
+                        log.warning(
+                            "nonce-transient on attempt %d (nonce=%d, chain=%d): %s — retrying",
+                            attempt + 1, nonce, chain_nonce, msg[:120],
+                        )
+                        self._last_nonce = -1            # bust cache
+                        _time.sleep(2.0 + attempt)        # backoff
+                        continue
+                    raise
 
-            # Accepted by mempool — commit cursor + wait for receipt
-            self._last_nonce = nonce
-            receipt = self.w3.eth.wait_for_transaction_receipt(h, timeout=180)
-            if receipt.status != 1:
-                raise RuntimeError(f"tx reverted: {h.hex()}")
-            return h.hex()
+                # Accepted by mempool — commit cursor + wait for receipt
+                self._last_nonce = nonce
+                receipt = self.w3.eth.wait_for_transaction_receipt(h, timeout=180)
+                if receipt.status != 1:
+                    raise RuntimeError(f"tx reverted: {h.hex()}")
+                return h.hex()
 
-        raise RuntimeError(
-            f"send failed after {max_attempts} attempts; last error: {last_err}"
-        )
+            raise RuntimeError(
+                f"send failed after {max_attempts} attempts; last error: {last_err}"
+            )
 
     def _estimate_gas(self, contract_call, value: int) -> int:
         try:
@@ -396,7 +519,7 @@ class ArdiClient:
     # ------------------------------------------------------ Coordinator HTTP --
 
     def fetch_current_epoch(self) -> CurrentEpoch:
-        r = self._http.get(f"{self.coordinator_url}/v1/epoch/current")
+        r = self._coord_request("GET", "/v1/epoch/current")
         r.raise_for_status()
         d = r.json()
         return CurrentEpoch(
@@ -418,8 +541,7 @@ class ArdiClient:
         )
 
     def fetch_airdrop_proof(self, day: int) -> dict | None:
-        url = f"{self.coordinator_url}/v1/airdrop/proof/{day}/{self.address}"
-        r = self._http.get(url)
+        r = self._coord_request("GET", f"/v1/airdrop/proof/{day}/{self.address}")
         if r.status_code == 404:
             return None
         r.raise_for_status()
@@ -464,13 +586,16 @@ class ArdiClient:
         )
 
     def is_answer_published(self, epoch_id: int, word_id: int) -> bool:
-        """View call — has Coordinator already publishAnswer'd for this slot?"""
-        try:
-            result = self._draw.functions.getAnswer(epoch_id, word_id).call()
-            # Returns (word, power, languageId, published)
-            return bool(result[3])
-        except Exception:
-            return False
+        """View call — has Coordinator already publishAnswer'd for this slot?
+
+        Note: getAnswer() never reverts (returns the zero-struct for unknown
+        slots, with published=False). So any exception here is RPC/network,
+        not contract logic — we propagate it instead of swallowing, otherwise
+        a flaky RPC would silently look identical to "not published yet".
+        """
+        result = self._draw.functions.getAnswer(epoch_id, word_id).call()
+        # Returns (word, power, languageId, published)
+        return bool(result[3])
 
     def wait_for_answer_published(
         self,
@@ -478,16 +603,39 @@ class ArdiClient:
         word_id: int,
         timeout: int = 90,
         poll_interval: float = 4.0,
+        max_consecutive_rpc_errors: int = 5,
     ) -> bool:
         """Block until the Coordinator's publishAnswer tx is mined for this
         (epoch, wordId), or timeout. Without this, calling reveal() too early
         reverts with AnswerNotPublished, costing the agent gas + a nail-biting
-        diagnostic. Returns True if published, False on timeout."""
+        diagnostic. Returns True if published, False on timeout.
+
+        Tolerates transient RPC errors (logs + retries). After
+        ``max_consecutive_rpc_errors`` failures in a row we raise — at that
+        point the RPC is unhealthy and silently looping would only deepen
+        the confusion.
+        """
         import time as _time
         deadline = _time.time() + timeout
+        consecutive_errors = 0
+        last_err: Exception | None = None
         while _time.time() < deadline:
-            if self.is_answer_published(epoch_id, word_id):
-                return True
+            try:
+                if self.is_answer_published(epoch_id, word_id):
+                    return True
+                consecutive_errors = 0
+            except Exception as e:
+                consecutive_errors += 1
+                last_err = e
+                log.warning(
+                    f"is_answer_published RPC error #{consecutive_errors}: {e}"
+                )
+                if consecutive_errors >= max_consecutive_rpc_errors:
+                    raise RuntimeError(
+                        f"RPC unhealthy: {consecutive_errors} consecutive "
+                        f"errors checking getAnswer({epoch_id},{word_id}). "
+                        f"Last: {last_err}"
+                    ) from last_err
             _time.sleep(poll_interval)
         return False
 
@@ -590,6 +738,10 @@ class ArdiClient:
         Real Chainlink VRF auto-fulfills asynchronously — this is testnet only.
         Returns the fulfill tx hash, or None if no MockRandomness deployed
         (mainnet) / no DrawRequested log found / already fulfilled.
+
+        Uses the chunked log scanner to stay under public-RPC range limits
+        (many cap eth_getLogs at 1024 blocks; we walk back in 1000-block
+        shards up to ~6K blocks of history).
         """
         if self._mock_rng is None:
             return None
@@ -598,19 +750,11 @@ class ArdiClient:
             event_sig = "0x" + event_sig
         epoch_topic = "0x" + int(epoch_id).to_bytes(32, "big").hex()
         word_topic  = "0x" + int(word_id).to_bytes(32, "big").hex()
-        # Scan a window of recent blocks. Base Sepolia is 2s blocks; 5K
-        # covers the last ~3h which is way more than the per-epoch cycle.
-        latest = self.w3.eth.block_number
-        from_block = max(0, latest - 5000)
-        try:
-            logs = self.w3.eth.get_logs({
-                "address": self._draw.address,
-                "topics": [event_sig, epoch_topic, word_topic],
-                "fromBlock": from_block,
-            })
-        except Exception as e:
-            log.warning(f"fulfill: get_logs failed for ({epoch_id}, {word_id}): {e}")
-            return None
+        logs = self._get_logs_chunked(
+            address=self._draw.address,
+            topics=[event_sig, epoch_topic, word_topic],
+            lookback_blocks=6000,
+        )
         if not logs:
             log.warning(f"fulfill: no DrawRequested log for ({epoch_id}, {word_id})")
             return None
@@ -633,6 +777,33 @@ class ArdiClient:
             # Common case: already fulfilled (UnknownRequest revert) — that's fine
             log.info(f"fulfill: request_id={request_id} skipped: {e}")
             return None
+
+    def word_ids_for_epoch(
+        self,
+        epoch_id: int,
+        lookback_blocks: int = 20000,
+    ) -> list[int]:
+        """Discover wordIds that had a draw requested in the given epoch.
+
+        Used by `winners` when the caller doesn't pass --word-id and the
+        epoch isn't current (so we can't get the riddles list from the
+        Coordinator). Naively assuming wordIds are 0..14 is wrong — they
+        are global vault indices 0..20999 chosen per-epoch. The on-chain
+        `DrawRequested` event is the source of truth for "which wordIds
+        had at least one correct revealer in this epoch", which is exactly
+        the set that can have a winner.
+        """
+        event_sig = self.w3.keccak(text=DRAW_REQUESTED_EVENT_SIG).hex()
+        if not event_sig.startswith("0x"):
+            event_sig = "0x" + event_sig
+        epoch_topic = "0x" + int(epoch_id).to_bytes(32, "big").hex()
+        logs = self._get_logs_chunked(
+            address=self._draw.address,
+            topics=[event_sig, epoch_topic],
+            lookback_blocks=lookback_blocks,
+        )
+        word_ids = sorted({int(L["topics"][2].hex(), 16) for L in logs})
+        return word_ids
 
     def winner_of(self, epoch_id: int, word_id: int) -> str:
         return self._draw.functions.winners(epoch_id, word_id).call()
@@ -724,7 +895,7 @@ class ArdiClient:
             self._draw.functions.forfeitBond(epoch_id, word_id, target),
             gas=120_000,
         )
-        refunded, amount = self._parse_forfeit_result(tx_hash, epoch_id, word_id)
+        refunded, amount = self._parse_forfeit_result(tx_hash, epoch_id, word_id, target)
         log.info(
             f"forfeit_bond ok: epoch={epoch_id} word={word_id} agent={target} "
             f"refunded={refunded} amount={amount} tx={tx_hash}"
@@ -741,19 +912,27 @@ class ArdiClient:
         tx_hash: str,
         epoch_id: int,
         word_id: int,
+        agent: str,
     ) -> tuple[bool, int]:
         """Return (refunded_to_agent, amount_wei) from the receipt's events.
         refunded=True means BondRefundedNoAnswer; False means BondForfeited
-        (treasury). Defaults to (False, 0) if neither event is found."""
+        (treasury). Filters by all three indexed topics — epoch, wordId, and
+        agent — so a tx that happened to emit two events (different agents)
+        wouldn't cross-match. Defaults to (False, 0) if neither event found."""
         try:
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
             sig_refund = self.w3.keccak(text="BondRefundedNoAnswer(uint256,uint256,address,uint256)")
             sig_forfeit = self.w3.keccak(text="BondForfeited(uint256,uint256,address,uint256)")
+            agent_lo = Web3.to_checksum_address(agent).lower()
             for L in receipt.logs:
                 if len(L["topics"]) < 4:
                     continue
                 if (int(L["topics"][1].hex(), 16) != int(epoch_id)
                         or int(L["topics"][2].hex(), 16) != int(word_id)):
+                    continue
+                # topics[3] is indexed address — last 20 bytes of 32-byte topic
+                topic_agent = "0x" + L["topics"][3].hex()[-40:]
+                if topic_agent.lower() != agent_lo:
                     continue
                 # data is the un-indexed amount: 32 bytes uint256
                 data = L["data"]
@@ -774,8 +953,8 @@ class ArdiClient:
 
     def forge_quote(self, token_a: int, token_b: int) -> dict:
         """Read-only LLM oracle preview from Coordinator. No tx."""
-        r = self._http.post(
-            f"{self.coordinator_url}/v1/forge/quote",
+        r = self._coord_request(
+            "POST", "/v1/forge/quote",
             json={"tokenIdA": token_a, "tokenIdB": token_b, "holder": self.address},
         )
         r.raise_for_status()
@@ -784,8 +963,8 @@ class ArdiClient:
     def forge_sign(self, token_a: int, token_b: int) -> dict:
         """Get a Coordinator-signed fuse authorization. Returns the kwargs
         you'd pass to `fuse()`."""
-        r = self._http.post(
-            f"{self.coordinator_url}/v1/forge/sign",
+        r = self._coord_request(
+            "POST", "/v1/forge/sign",
             json={"tokenIdA": token_a, "tokenIdB": token_b, "holder": self.address},
         )
         r.raise_for_status()

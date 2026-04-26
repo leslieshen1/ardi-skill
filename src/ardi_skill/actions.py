@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Optional
 
 from .agent import _load_deploy, TicketStore
-from .sdk import ArdiClient
+from .sdk import ArdiClient, CoordinatorUnreachableError
 from .wallet import resolve_private_key
 
 
@@ -79,6 +79,18 @@ def _err(msg: str, code: int = 1) -> None:
     sys.exit(code)
 
 
+def _err_coord(e: CoordinatorUnreachableError, code: int = 99) -> None:
+    """Pretty-print a Coordinator-unreachable error with the recovery hint
+    in plain text on stderr (not JSON-encoded so the export readable)."""
+    print(f"\n{e}\n", file=sys.stderr)
+    print(
+        json.dumps({"ok": False, "error": "coordinator_unreachable",
+                    "url": str(e).split('\n', 1)[0]}),
+        file=sys.stderr,
+    )
+    sys.exit(code)
+
+
 # ============================================================================
 # epoch — read current epoch + 14-15 riddles from Coordinator
 # ============================================================================
@@ -87,6 +99,8 @@ def cmd_epoch(args):
     client = _make_client(args.name)
     try:
         epoch = client.fetch_current_epoch()
+    except CoordinatorUnreachableError as e:
+        _err_coord(e)
     except Exception as e:
         _err(f"fetch_current_epoch failed: {e}", 2)
 
@@ -128,6 +142,8 @@ def cmd_commit(args):
     if epoch_id is None:
         try:
             epoch_id = client.fetch_current_epoch().epoch_id
+        except CoordinatorUnreachableError as e:
+            _err_coord(e)
         except Exception as e:
             _err(f"couldn't fetch current epoch: {e}", 2)
 
@@ -178,8 +194,15 @@ def cmd_reveal(args):
         )
 
     t = candidates[0]
+    # --force skips the on-chain `published` poll. Use when you're certain
+    # the Coordinator has published (e.g., RPC was flaky and our publish-
+    # check kept timing out, but a fresh getAnswer in basescan shows ✓).
+    wait_for_publish = not getattr(args, "force", False)
     try:
-        result = client.reveal(t.epoch_id, t.word_id, t.guess, t.nonce)
+        result = client.reveal(
+            t.epoch_id, t.word_id, t.guess, t.nonce,
+            wait_for_publish=wait_for_publish,
+        )
     except Exception as e:
         _err(f"reveal failed: {e}", 6)
 
@@ -251,15 +274,40 @@ def cmd_winners(args):
         }, args)
         return
 
-    # All wordIds: scan riddles in the epoch
+    # All wordIds: try to discover them.
+    #   1. If we're querying the current epoch, the Coordinator's riddles
+    #      list is authoritative + free.
+    #   2. Otherwise, scan DrawRequested events from the chain — those are
+    #      the ONLY wordIds that can have a winner (a draw is requested
+    #      iff at least one agent revealed correctly).
+    # Naively scanning 0..14 was wrong: word_ids are global vault indices
+    # 0..20999, not 0-indexed within an epoch.
+    word_ids: list[int] = []
     try:
         epoch = client.fetch_current_epoch()
-        word_ids = [r.word_id for r in epoch.riddles] if epoch.epoch_id == epoch_id else None
+        if epoch.epoch_id == epoch_id:
+            word_ids = [r.word_id for r in epoch.riddles]
     except Exception:
-        word_ids = None
-    if word_ids is None:
-        # Fallback: scan 0..14 (default riddles per epoch)
-        word_ids = list(range(15))
+        pass
+    if not word_ids:
+        try:
+            word_ids = client.word_ids_for_epoch(epoch_id)
+        except Exception as e:
+            _err(
+                f"couldn't discover word_ids for epoch {epoch_id} "
+                f"(no riddles list + DrawRequested log scan failed): {e}. "
+                f"Pass --word-id explicitly.",
+                12,
+            )
+    if not word_ids:
+        _print({
+            "ok": True, "epoch_id": epoch_id, "you": client.address,
+            "you_won_word_ids": [], "results": [],
+            "note": "no DrawRequested events found for this epoch — "
+                    "either nobody revealed correctly, or the lookback "
+                    "window (~20K blocks) doesn't cover this epoch yet.",
+        }, args)
+        return
 
     out = []
     for wid in word_ids:
@@ -296,11 +344,26 @@ def cmd_inscribe(args):
 
     # Sanity check: are we actually the winner?
     winner = client.winner_of(args.epoch, args.word_id)
+    zero = winner == "0x0000000000000000000000000000000000000000"
+
+    # If winner is 0x0, VRF callback may not have fired yet. On testnet
+    # we have a permissionless MockRandomness.fulfill(); try once. On
+    # mainnet (no mock) this is a no-op and we surface the original error.
+    if zero:
+        try:
+            tx = client.fulfill_pending_for(args.epoch, args.word_id)
+            if tx:
+                # Re-read winner after fulfill
+                winner = client.winner_of(args.epoch, args.word_id)
+                zero = winner == "0x0000000000000000000000000000000000000000"
+        except Exception as e:
+            print(f"# auto-fulfill failed (non-fatal): {e}", file=sys.stderr)
+
     if winner.lower() != client.address.lower():
-        zero = winner == "0x0000000000000000000000000000000000000000"
         _err(
             f"not the winner of (epoch={args.epoch}, wordId={args.word_id}). "
-            f"on-chain winner: {'(none yet — VRF still pending?)' if zero else winner}",
+            f"on-chain winner: "
+            f"{'(none yet — VRF callback still pending; try again in ~30s)' if zero else winner}",
             8,
         )
 
@@ -362,6 +425,8 @@ def cmd_claim(args):
 
     try:
         tx_hash = client.claim_airdrop(args.day)
+    except CoordinatorUnreachableError as e:
+        _err_coord(e)
     except Exception as e:
         _err(f"claim failed: {e}", 11)
 
@@ -567,6 +632,8 @@ def cmd_play(args):
     # ---- Stage 1 — fetch current epoch ----
     try:
         epoch = client.fetch_current_epoch()
+    except CoordinatorUnreachableError as e:
+        _err_coord(e)
     except Exception as e:
         _err(f"couldn't fetch current epoch: {e}", 2)
     epoch_id = epoch.epoch_id
