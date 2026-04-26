@@ -234,27 +234,85 @@ class ArdiClient:
 
     # -------------------------------------------------------------------- tx --
 
+    # Nonce-related transient errors that we retry by re-reading the chain's
+    # pending nonce. These come back as web3.exceptions.Web3RPCError which
+    # we string-match by message because the error structure differs between
+    # public RPCs.
+    _NONCE_TRANSIENT = (
+        "nonce too low",
+        "replacement transaction underpriced",
+        "already known",
+        "OldNonce",
+    )
+
     def _send(
         self,
         contract_call,
         value: int = 0,
         gas: int | None = None,
+        max_attempts: int = 4,
     ) -> str:
-        """Build, sign, send, wait. Returns tx hash hex."""
-        tx = contract_call.build_transaction({
-            "from": self._account.address,
-            "nonce": self.w3.eth.get_transaction_count(self._account.address),
-            "chainId": self.chain_id,
-            "gasPrice": self.w3.eth.gas_price,
-            "value": value,
-            "gas": gas or self._estimate_gas(contract_call, value),
-        })
-        signed = self._account.sign_transaction(tx)
-        h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
-        receipt = self.w3.eth.wait_for_transaction_receipt(h, timeout=120)
-        if receipt.status != 1:
-            raise RuntimeError(f"tx reverted: {h.hex()}")
-        return h.hex()
+        """Build, sign, send, wait. Returns tx hash hex.
+
+        Nonce strategy — back-to-back sends on public RPCs are fragile because
+        the RPC's view of "pending" can be stale for 1-3 seconds after a
+        previous send. Mitigations:
+
+          1. Use the 'pending' nonce tag.
+          2. Layer a local monotonic cache on top so we never reuse a slot
+             we've already burned in this process.
+          3. Retry on `nonce too low` / `replacement transaction underpriced` /
+             `already known` — bust the cache, sleep briefly, re-read.
+
+        On success, advance the cache exactly once (after `send_raw_transaction`
+        is accepted). On failure, the cache stays where it was — callers can
+        invoke us again and we'll fall back to whatever the chain reports.
+        """
+        import time as _time
+        addr = self._account.address
+        last_err: Exception | None = None
+
+        for attempt in range(max_attempts):
+            chain_nonce = self.w3.eth.get_transaction_count(addr, "pending")
+            cached = getattr(self, "_last_nonce", -1)
+            # First attempt: trust the cache. Retries: trust the chain.
+            nonce = max(chain_nonce, cached + 1) if attempt == 0 else chain_nonce
+
+            tx = contract_call.build_transaction({
+                "from": addr,
+                "nonce": nonce,
+                "chainId": self.chain_id,
+                "gasPrice": self.w3.eth.gas_price,
+                "value": value,
+                "gas": gas or self._estimate_gas(contract_call, value),
+            })
+            signed = self._account.sign_transaction(tx)
+
+            try:
+                h = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+            except Exception as e:
+                last_err = e
+                msg = str(e).lower()
+                if any(s.lower() in msg for s in self._NONCE_TRANSIENT):
+                    log.warning(
+                        "nonce-transient on attempt %d (nonce=%d, chain=%d): %s — retrying",
+                        attempt + 1, nonce, chain_nonce, msg[:120],
+                    )
+                    self._last_nonce = -1            # bust cache
+                    _time.sleep(2.0 + attempt)        # backoff
+                    continue
+                raise
+
+            # Accepted by mempool — commit cursor + wait for receipt
+            self._last_nonce = nonce
+            receipt = self.w3.eth.wait_for_transaction_receipt(h, timeout=180)
+            if receipt.status != 1:
+                raise RuntimeError(f"tx reverted: {h.hex()}")
+            return h.hex()
+
+        raise RuntimeError(
+            f"send failed after {max_attempts} attempts; last error: {last_err}"
+        )
 
     def _estimate_gas(self, contract_call, value: int) -> int:
         try:
