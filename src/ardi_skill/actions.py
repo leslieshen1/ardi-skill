@@ -295,7 +295,7 @@ def cmd_inscribe(args):
         "token_id": token_id,
         "tx_hash": tx_hash,
         "basescan_tx": f"https://sepolia.basescan.org/tx/{tx_hash}",
-        "basescan_nft": f"https://sepolia.basescan.org/token/{client.contracts['ardi_nft']}?a={token_id}",
+        "basescan_nft": f"https://sepolia.basescan.org/token/{client._contracts['ardi_nft']}?a={token_id}",
     }, args)
 
 

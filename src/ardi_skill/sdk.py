@@ -260,6 +260,11 @@ class ArdiClient:
     def address(self) -> str:
         return self._account.address
 
+    @property
+    def contracts(self) -> dict[str, str]:
+        """Public read-only view of the resolved checksum addresses."""
+        return dict(self._contracts)
+
     # -------------------------------------------------------------------- tx --
 
     # Nonce-related transient errors that we retry by re-reading the chain's
