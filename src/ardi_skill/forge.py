@@ -125,24 +125,51 @@ def cmd_forge_list(args):
 # ----- forge quote -----
 
 def _print_quote(q: dict) -> None:
-    print(f"\n  ┌─ Oracle quote ─────────────────────────────────────")
-    print(f"  │  '{q['wordA']}' (pw {q['powerA']})  +  '{q['wordB']}' (pw {q['powerB']})")
+    """Render the redesigned quote: odds + risk surface, NO new-word spoiler.
+
+    The Coordinator's /v1/forge/quote returns:
+      compatibility, tier, rationale, success_rate, multiplier,
+      power_if_success, would_burn_on_fail_token_id, would_burn_on_fail_word.
+
+    What it does NOT return (intentionally — preserves the gamble):
+      suggested_word, success.
+    """
+    pa, pb = q['powerA'], q['powerB']
+    sr = q.get('success_rate', 0.0)
+    mult = q.get('multiplier', 0.0)
+    pwr_if_win = q.get('power_if_success', 0)
+    burn_word = q.get('would_burn_on_fail_word', q['wordA'] if pa <= pb else q['wordB'])
+    burn_id   = q.get('would_burn_on_fail_token_id', q.get('tokenIdA') if pa <= pb else q.get('tokenIdB'))
+
+    # Expected-value math the player should see before committing
+    ev_win  = pwr_if_win * sr
+    ev_loss = max(pa, pb) * (1.0 - sr)         # surviving (higher-power) value on fail
+    ev_keep = pa + pb                            # walk-away value (don't fuse)
+    ev_fuse = ev_win + ev_loss
+    ev_delta = ev_fuse - ev_keep
+
+    print(f"\n  ┌─ Oracle odds ──────────────────────────────────────")
+    print(f"  │  '{q['wordA']}' (pw {pa})  +  '{q['wordB']}' (pw {pb})")
     print(f"  │")
     print(f"  │  tier            : {q.get('tier', '?')}")
     print(f"  │  compatibility   : {q['compatibility']:.2%}")
-    sr = 0.20 + q['compatibility'] * 0.50
-    print(f"  │  success rate    : {sr:.2%} (= 0.20 + compat × 0.50)")
-    print(f"  │  if won → word   : '{q['suggested_word']}'")
-    print(f"  │  if won → power  : {q['new_power']} (× {q['new_power'] / max(1, q['powerA'] + q['powerB']):.2f})")
+    print(f"  │  success rate    : {sr:.1%}      ← P(your fuse hits)")
+    print(f"  │  multiplier      : ×{mult:.2f}     (applied to powerA + powerB on success)")
+    print(f"  │  power IF success: {pwr_if_win}")
+    print(f"  │  burns on FAIL   : '{burn_word}' (#{burn_id}, pw {min(pa, pb)})")
+    print(f"  │")
+    print(f"  │  expected power  : {ev_fuse:.0f}  (vs walk-away {ev_keep})  → Δ {ev_delta:+.0f}")
+    if ev_delta < 0:
+        print(f"  │  ⚠  EV negative — walking away preserves more power.")
     if q.get('rationale'):
         print(f"  │")
         print(f"  │  rationale       :")
-        for line in (q['rationale'][:300] + ('…' if len(q['rationale']) > 300 else '')).split('\n'):
+        rat = q['rationale']
+        for line in (rat[:300] + ('…' if len(rat) > 300 else '')).split('\n'):
             print(f"  │    {line}")
-    print(f"  └────────────────────────────────────────────────────\n")
-    print(f"  Note: success/fail is rolled at fuse-time on chain.")
-    print(f"  On lose, the lower-power one ('{q['wordA'] if q['powerA'] <= q['powerB'] else q['wordB']}', "
-          f"pw {min(q['powerA'], q['powerB'])}) burns; the other survives.")
+    print(f"  └────────────────────────────────────────────────────")
+    print()
+    print(f"  The new word is hidden until you sign. The dice are rolled at sign-time.")
 
 
 def cmd_forge_quote(args):
@@ -186,14 +213,17 @@ def cmd_forge_fuse(args):
         print(f"✗ sign failed: {e}", file=sys.stderr)
         sys.exit(3)
 
+    # Sign reveals the dice roll. From this point on the result is locked
+    # for this (holder, A, B, fusionNonce) tuple — re-calling sign returns
+    # the same authorization, so a holder can't re-roll a bad outcome.
     success = sig_response['success']
-    print(f"  Coordinator says: {'SUCCESS' if success else 'WILL FAIL (oracle decided low compat)'}")
+    print(f"  🎲 dice rolled — {'HIT' if success else 'MISS'}")
     if success:
-        print(f"  → mint '{sig_response['newWord']}' power {sig_response['newPower']}")
+        print(f"  → '{sig_response['newWord']}' (pw {sig_response['newPower']}) waiting at the forge")
     else:
         burn_id = args.token_a if q['powerA'] <= q['powerB'] else args.token_b
         burn_word = q['wordA'] if q['powerA'] <= q['powerB'] else q['wordB']
-        print(f"  → '{burn_word}' (#{burn_id}) will burn; the other endures")
+        print(f"  → '{burn_word}' (#{burn_id}) will burn on chain; the other endures")
 
     # Step 4: submit on-chain
     print(f"\n[3/3] Submitting ArdiNFT.fuse() on-chain…")

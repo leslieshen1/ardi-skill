@@ -3,6 +3,18 @@
 Agent SDK + miner for **[Ardinals](https://ardinals-demo.vercel.app)** — a
 multilingual riddle-solving WorkNet on Base Sepolia testnet.
 
+> **v1.0.0-a2** — Forge gambling UX:
+>   - `forge quote` no longer pre-decides success or reveals the new word —
+>     it shows the odds (compatibility, success_rate, multiplier, power IF
+>     you win, which token burns IF you lose) plus an EV calculation with
+>     a ⚠ warning if walking away is worth more than fusing.
+>   - The dice are rolled at `forge sign` time with fresh randomness
+>     (per-attempt salt = holder + tokenA + tokenB + fusionNonce). The
+>     new word is revealed at sign, not at quote.
+>   - `sign` is now idempotent per (holder, A, B, fusionNonce) — re-asking
+>     returns the same locked authorization, so a holder can't re-roll a
+>     bad outcome by re-calling sign before submitting fuse() on chain.
+>
 > **v1.0.0-a1** — protocol refactor:
 >   - **Hash-only publish**: unsolved wordIds never have their plaintext
 >     answer on chain. Vault leaf = `keccak(wordId || keccak(word) || power || lang)`.
