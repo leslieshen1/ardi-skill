@@ -213,6 +213,16 @@ ARDI_NFT_ABI = [
     {"type": "function", "name": "agentMintCount", "stateMutability": "view",
      "inputs": [{"type": "address"}],
      "outputs": [{"type": "uint8"}]},
+    # ERC-721 approval — needed before ArdiOTC.list. setApprovalForAll
+    # is one-time (operator stays approved across listings).
+    {"type": "function", "name": "setApprovalForAll", "stateMutability": "nonpayable",
+     "inputs": [{"type": "address", "name": "operator"},
+                {"type": "bool",    "name": "approved"}],
+     "outputs": []},
+    {"type": "function", "name": "isApprovedForAll", "stateMutability": "view",
+     "inputs": [{"type": "address", "name": "owner"},
+                {"type": "address", "name": "operator"}],
+     "outputs": [{"type": "bool"}]},
 ]
 
 BOND_ESCROW_ABI = [
@@ -232,6 +242,38 @@ ERC20_ABI = [
      "outputs": [{"type": "bool"}]},
     {"type": "function", "name": "balanceOf", "stateMutability": "view",
      "inputs": [{"type": "address"}], "outputs": [{"type": "uint256"}]},
+]
+
+OTC_ABI = [
+    # ArdiOTC marketplace — non-custodial fixed-price listings.
+    # Sellers approve the OTC contract once (via NFT.setApprovalForAll),
+    # then call list(tokenId, priceWei). Buyers send ETH equal to priceWei.
+    # 100% to seller, no fee. Listings auto-expire if seller transfers.
+    {"type": "function", "name": "list", "stateMutability": "nonpayable",
+     "inputs": [{"type": "uint256", "name": "tokenId"},
+                {"type": "uint256", "name": "priceWei"}],
+     "outputs": []},
+    {"type": "function", "name": "unlist", "stateMutability": "nonpayable",
+     "inputs": [{"type": "uint256", "name": "tokenId"}],
+     "outputs": []},
+    {"type": "function", "name": "buy", "stateMutability": "payable",
+     "inputs": [{"type": "uint256", "name": "tokenId"}],
+     "outputs": []},
+    {"type": "function", "name": "isListed", "stateMutability": "view",
+     "inputs": [{"type": "uint256"}], "outputs": [{"type": "bool"}]},
+    {"type": "function", "name": "getListing", "stateMutability": "view",
+     "inputs": [{"type": "uint256"}],
+     "outputs": [{"type": "tuple", "components": [
+         {"type": "address", "name": "seller"},
+         {"type": "uint256", "name": "priceWei"},
+         {"type": "uint64",  "name": "listedAt"},
+     ]}]},
+    {"type": "event", "name": "Listed", "anonymous": False,
+     "inputs": [
+         {"type": "address", "name": "seller", "indexed": True},
+         {"type": "uint256", "name": "tokenId", "indexed": True},
+         {"type": "uint256", "name": "priceWei"},
+     ]},
 ]
 
 MINT_CTRL_ABI = [
@@ -316,6 +358,14 @@ class ArdiClient:
             address=self._contracts["bond_escrow"], abi=BOND_ESCROW_ABI)
         self._mint_ctrl = self.w3.eth.contract(
             address=self._contracts["mint_controller"], abi=MINT_CTRL_ABI)
+        # ArdiOTC marketplace — optional. Caller may pass `ardi_otc` in the
+        # contracts dict; if absent, market commands raise a clear error.
+        otc_addr = self._contracts.get("ardi_otc", "")
+        if otc_addr and int(otc_addr, 16) != 0:
+            self._otc = self.w3.eth.contract(
+                address=otc_addr, abi=OTC_ABI)
+        else:
+            self._otc = None
         # MockRandomness — only present on testnet rehearsals where the
         # operator deploys a mock VRF. Real Chainlink VRF doesn't expose
         # public fulfill(); on mainnet this address won't be in `contracts`.
@@ -1049,3 +1099,174 @@ class ArdiClient:
 
     def already_claimed(self, day: int) -> bool:
         return bool(self._mint_ctrl.functions.claimed(day, self.address).call())
+
+    # ============================================================ Market =====
+
+    def _require_otc(self) -> None:
+        """Marketplace methods need the OTC contract address wired into
+        `contracts['ardi_otc']` at client construction. Raise a friendly
+        error if it isn't there (e.g. caller built the client with an
+        old deploy.json that pre-dates ArdiOTC)."""
+        if self._otc is None:
+            raise RuntimeError(
+                "ArdiOTC contract not configured. Add `ardi_otc` to your "
+                "contracts dict (it's `otc` in deployments/base-sepolia.json) "
+                "or upgrade your deploy fetcher."
+            )
+
+    def market_listings(self, lookback_blocks: int = 20000) -> list[dict]:
+        """Return all currently-active OTC listings.
+
+        Strategy: scan Listed events for tokenIds ever offered, then
+        filter to live ones via `isListed` + `getListing`. A listing
+        is considered alive iff (a) `isListed=true` AND (b) the seller
+        recorded in the listing still owns the token (otherwise the
+        contract would refund any buy attempt).
+
+        Returns a list of dicts: {token_id, seller, price_wei, price_eth,
+        listed_at}.
+        """
+        self._require_otc()
+        sig = self.w3.keccak(text="Listed(address,uint256,uint256)").hex()
+        if not sig.startswith("0x"):
+            sig = "0x" + sig
+        logs = self._get_logs_chunked(
+            address=self._otc.address,
+            topics=[sig],
+            lookback_blocks=lookback_blocks,
+        )
+        seen: set[int] = set()
+        ordered_ids: list[int] = []
+        for L in logs:
+            tid = int(L["topics"][2].hex(), 16)
+            if tid not in seen:
+                seen.add(tid)
+                ordered_ids.append(tid)
+        out: list[dict] = []
+        for tid in ordered_ids:
+            try:
+                if not bool(self._otc.functions.isListed(tid).call()):
+                    continue
+                lst = self._otc.functions.getListing(tid).call()
+                # lst is (seller, priceWei, listedAt)
+                seller, price_wei, listed_at = lst[0], int(lst[1]), int(lst[2])
+                # Stale-seller filter: the contract will revert at buy if the
+                # seller has transferred away, so we hide those entries.
+                cur_owner = self._nft.functions.ownerOf(tid).call()
+                if cur_owner.lower() != seller.lower():
+                    continue
+                out.append({
+                    "token_id": tid,
+                    "seller": seller,
+                    "price_wei": price_wei,
+                    "price_eth": price_wei / 1e18,
+                    "listed_at": listed_at,
+                })
+            except Exception as e:
+                log.debug(f"market_listings: skipping {tid}: {e}")
+        return out
+
+    def market_listing_of(self, token_id: int) -> dict | None:
+        """Single-token getListing helper. Returns None if not listed."""
+        self._require_otc()
+        try:
+            if not bool(self._otc.functions.isListed(token_id).call()):
+                return None
+            lst = self._otc.functions.getListing(token_id).call()
+            return {
+                "token_id": token_id,
+                "seller": lst[0],
+                "price_wei": int(lst[1]),
+                "price_eth": int(lst[1]) / 1e18,
+                "listed_at": int(lst[2]),
+            }
+        except Exception:
+            return None
+
+    def market_list(self, token_id: int, price_eth: float) -> dict:
+        """List one of your Ardinals on ArdiOTC at fixed ETH price.
+
+        Auto-handles the ERC-721 approval prerequisite: if the OTC contract
+        isn't yet an approved operator for the caller, sends one
+        `setApprovalForAll(otc, true)` tx first. Subsequent `market_list`
+        calls reuse that approval.
+
+        Returns: {ok, list_tx, approval_tx (or None), price_wei, price_eth}.
+        """
+        self._require_otc()
+        if price_eth <= 0:
+            raise ValueError("price must be > 0")
+        # Ownership check — fail-fast vs. waiting for the contract revert
+        owner = self._nft.functions.ownerOf(token_id).call()
+        if owner.lower() != self.address.lower():
+            raise RuntimeError(
+                f"you don't own tokenId {token_id} (owner is {owner})"
+            )
+        # Approval check
+        approved = bool(self._nft.functions.isApprovedForAll(
+            self.address, self._otc.address
+        ).call())
+        approval_tx = None
+        if not approved:
+            approval_tx = self._send(
+                self._nft.functions.setApprovalForAll(self._otc.address, True),
+                gas=80_000,
+            )
+            log.info(f"market_list: approved OTC operator (tx={approval_tx})")
+        price_wei = int(price_eth * 1e18)
+        list_tx = self._send(
+            self._otc.functions.list(token_id, price_wei),
+            gas=120_000,
+        )
+        return {
+            "ok": True,
+            "list_tx": list_tx,
+            "approval_tx": approval_tx,
+            "price_wei": price_wei,
+            "price_eth": price_eth,
+        }
+
+    def market_unlist(self, token_id: int) -> str:
+        """Cancel your active listing for tokenId. Returns tx hash."""
+        self._require_otc()
+        return self._send(
+            self._otc.functions.unlist(token_id),
+            gas=80_000,
+        )
+
+    def market_buy(self, token_id: int, max_price_eth: float | None = None) -> dict:
+        """Buy a listed Ardinal. Sends ETH equal to the on-chain priceWei
+        as msg.value; the contract refunds any excess so over-paying is
+        safe but unnecessary.
+
+        Args:
+          max_price_eth: optional ceiling. If the on-chain price exceeds
+                         this, raise without sending — protects against
+                         a seller bumping the price between quote and buy.
+
+        Returns: {ok, tx_hash, price_wei, price_eth, seller}.
+        """
+        self._require_otc()
+        listing = self.market_listing_of(token_id)
+        if not listing:
+            raise RuntimeError(f"tokenId {token_id} is not listed")
+        price_wei = listing["price_wei"]
+        if max_price_eth is not None and price_wei > int(max_price_eth * 1e18):
+            raise RuntimeError(
+                f"on-chain price {listing['price_eth']:.6f} ETH exceeds "
+                f"--max-price {max_price_eth} ETH"
+            )
+        if listing["seller"].lower() == self.address.lower():
+            raise RuntimeError("you can't buy your own listing — use market_unlist")
+        tx = self._send(
+            self._otc.functions.buy(token_id),
+            value=price_wei,
+            gas=200_000,
+        )
+        return {
+            "ok": True,
+            "tx_hash": tx,
+            "price_wei": price_wei,
+            "price_eth": listing["price_eth"],
+            "seller": listing["seller"],
+        }

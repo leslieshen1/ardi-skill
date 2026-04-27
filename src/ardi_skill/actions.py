@@ -51,6 +51,7 @@ def _make_client(name: Optional[str]) -> ArdiClient:
             "bond_escrow": deploy["bondEscrow"],
             "epoch_draw": deploy["epochDraw"],
             "mint_controller": deploy["mintController"],
+            "ardi_otc": deploy.get("otc", ""),
             "mock_awp": deploy.get("mockAWP", deploy.get("awp_token", "")),
             "mock_randomness": deploy.get("mockRandomness", ""),
         },
@@ -539,6 +540,134 @@ def cmd_tickets(args):
 # ============================================================================
 # forfeit-bond — recover a stuck commit bond after reveal window closed
 # ============================================================================
+
+# ============================================================================
+# market — list / unlist / buy / browse on ArdiOTC
+# ============================================================================
+
+def _shorten(addr: str, n: int = 6) -> str:
+    return addr[:n] + "…" + addr[-4:] if addr else ""
+
+
+def cmd_market_browse(args):
+    """List every active OTC offering, sorted by price ascending."""
+    client = _make_client(args.name)
+    try:
+        rows = client.market_listings()
+    except Exception as e:
+        _err(f"market browse failed: {e}", 30)
+
+    rows.sort(key=lambda r: r["price_wei"])
+    me = client.address.lower()
+    out = []
+    for r in rows:
+        # Inscribe metadata for each listed token (best-effort)
+        try:
+            ins = client._nft.functions.getInscription(r["token_id"]).call()
+            word, power, lang_id, generation = ins[0], int(ins[1]), int(ins[2]), int(ins[3])
+        except Exception:
+            word, power, lang_id, generation = "?", 0, 0, 0
+        out.append({
+            "token_id": r["token_id"],
+            "word": word,
+            "power": power,
+            "language_id": lang_id,
+            "generation": generation,
+            "price_eth": r["price_eth"],
+            "seller": r["seller"],
+            "is_yours": r["seller"].lower() == me,
+        })
+
+    _print({
+        "ok": True,
+        "count": len(out),
+        "your_address": client.address,
+        "listings": out,
+    }, args)
+
+
+def cmd_market_sell(args):
+    """List one of your Ardinals at a fixed ETH price."""
+    client = _make_client(args.name)
+    if args.token_id is None:
+        _err("--token-id is required", 7)
+    if args.price is None or args.price <= 0:
+        _err("--price (in ETH) is required and must be > 0", 7)
+
+    try:
+        result = client.market_list(args.token_id, args.price)
+    except Exception as e:
+        _err(f"market sell failed: {e}", 31)
+
+    _print({
+        "ok": True,
+        "token_id": args.token_id,
+        "price_eth": result["price_eth"],
+        "price_wei": result["price_wei"],
+        "approval_tx": result.get("approval_tx"),
+        "list_tx": result["list_tx"],
+        "basescan_list": f"https://sepolia.basescan.org/tx/{result['list_tx']}",
+        "next": (
+            f"buyer can pick up via: ardi-agent market buy --token-id {args.token_id}"
+        ),
+    }, args)
+
+
+def cmd_market_cancel(args):
+    """Remove your active listing for a tokenId."""
+    client = _make_client(args.name)
+    if args.token_id is None:
+        _err("--token-id is required", 7)
+
+    try:
+        tx = client.market_unlist(args.token_id)
+    except Exception as e:
+        _err(f"market cancel failed: {e}", 32)
+
+    _print({
+        "ok": True,
+        "token_id": args.token_id,
+        "tx_hash": tx,
+        "basescan": f"https://sepolia.basescan.org/tx/{tx}",
+    }, args)
+
+
+def cmd_market_buy(args):
+    """Purchase a listed Ardinal. Sends ETH equal to the on-chain price."""
+    client = _make_client(args.name)
+    if args.token_id is None:
+        _err("--token-id is required", 7)
+
+    # Fail-fast if listing doesn't exist or seller is the buyer
+    listing = client.market_listing_of(args.token_id)
+    if not listing:
+        _err(f"tokenId {args.token_id} is not currently listed", 33)
+    if args.max_price is not None and listing["price_eth"] > args.max_price:
+        _err(
+            f"on-chain price {listing['price_eth']:.6f} ETH exceeds your "
+            f"--max-price {args.max_price} ETH; refusing to buy",
+            34,
+        )
+    if listing["seller"].lower() == client.address.lower():
+        _err("you can't buy your own listing — use `ardi-agent market cancel`", 35)
+
+    try:
+        result = client.market_buy(args.token_id, max_price_eth=args.max_price)
+    except Exception as e:
+        _err(f"market buy failed: {e}", 36)
+
+    _print({
+        "ok": True,
+        "token_id": args.token_id,
+        "price_eth": result["price_eth"],
+        "price_wei": result["price_wei"],
+        "seller": result["seller"],
+        "buyer": client.address,
+        "tx_hash": result["tx_hash"],
+        "basescan": f"https://sepolia.basescan.org/tx/{result['tx_hash']}",
+        "basescan_nft": f"https://sepolia.basescan.org/token/{client._contracts['ardi_nft']}?a={args.token_id}",
+    }, args)
+
 
 def cmd_forfeit_bond(args):
     """Call ArdiEpochDraw.forfeitBond() to settle a stale commit's bond.

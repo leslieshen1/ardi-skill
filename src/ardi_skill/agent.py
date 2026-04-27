@@ -513,6 +513,7 @@ def cmd_mine(args):
             "bond_escrow": deploy["bondEscrow"],
             "epoch_draw": deploy["epochDraw"],
             "mint_controller": deploy["mintController"],
+            "ardi_otc": deploy.get("otc", ""),
             "mock_awp": deploy.get("mockAWP", deploy.get("awp_token", "")),
             "mock_randomness": deploy.get("mockRandomness", ""),
         },
@@ -710,6 +711,42 @@ caller. Most often you call it on yourself to clean up.""",
     common(pfb)
     pfb.set_defaults(func=act.cmd_forfeit_bond)
 
+    # ---- market (ArdiOTC marketplace) ----
+    mk = sub.add_parser(
+        "market",
+        help="ArdiOTC marketplace — browse / sell / buy / cancel",
+        description="Native fixed-price NFT marketplace on ArdiOTC. "
+                    "Non-custodial: NFTs stay in seller's wallet, only requiring "
+                    "approval. 100% to seller, no protocol fee.",
+    )
+    mksub = mk.add_subparsers(dest="mcmd")
+
+    mkb = mksub.add_parser("browse", help="list every active OTC offering")
+    common(mkb)
+    mkb.set_defaults(func=act.cmd_market_browse)
+
+    mks = mksub.add_parser("sell", help="put one of your Ardinals up for sale")
+    mks.add_argument("--token-id", type=int, required=True, dest="token_id")
+    mks.add_argument("--price", type=float, required=True,
+                     help="fixed price in ETH (e.g. 0.01)")
+    common(mks)
+    mks.set_defaults(func=act.cmd_market_sell)
+
+    mkc = mksub.add_parser("cancel", help="remove your active listing")
+    mkc.add_argument("--token-id", type=int, required=True, dest="token_id")
+    common(mkc)
+    mkc.set_defaults(func=act.cmd_market_cancel)
+
+    mkbuy = mksub.add_parser("buy", help="purchase a listed Ardinal")
+    mkbuy.add_argument("--token-id", type=int, required=True, dest="token_id")
+    mkbuy.add_argument(
+        "--max-price", type=float, default=None,
+        help="optional ceiling in ETH — refuse to buy if on-chain price exceeds this "
+             "(protects against a seller bumping the price between quote and buy)",
+    )
+    common(mkbuy)
+    mkbuy.set_defaults(func=act.cmd_market_buy)
+
     pp = sub.add_parser(
         "play",
         help="one-shot full epoch loop using YOUR answers (no LLM key needed)",
@@ -778,6 +815,9 @@ def main():
         return
     if args.cmd == "forge" and not getattr(args, "fcmd", None):
         ap.parse_args(["forge", "--help"])
+        return
+    if args.cmd == "market" and not getattr(args, "mcmd", None):
+        ap.parse_args(["market", "--help"])
         return
 
     args.func(args)

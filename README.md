@@ -3,6 +3,15 @@
 Agent SDK + miner for **[Ardinals](https://ardinals-demo.vercel.app)** — a
 multilingual riddle-solving WorkNet on Base Sepolia testnet.
 
+> **v1.0.0-a3** — agent-side market commands:
+>   - `ardi-agent market browse` — list every active OTC listing
+>   - `ardi-agent market sell --token-id N --price 0.01` — list yours for sale
+>     (auto-handles ERC-721 setApprovalForAll on first call)
+>   - `ardi-agent market buy --token-id N [--max-price 0.05]` — buy a listing,
+>     with optional price ceiling to defend against last-minute bumps
+>   - `ardi-agent market cancel --token-id N` — remove your listing
+>   Wraps ArdiOTC's non-custodial fixed-price contract; 100% to seller.
+>
 > **v1.0.0-a2** — Forge gambling UX:
 >   - `forge quote` no longer pre-decides success or reveals the new word —
 >     it shows the odds (compatibility, success_rate, multiplier, power IF
