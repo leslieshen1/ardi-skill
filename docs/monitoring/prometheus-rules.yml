@@ -1,0 +1,114 @@
+# Prometheus alerting rules for Ardi Coordinator.
+# Drop into your Prometheus config or load with `rule_files: [...]`.
+# Pairs with the metrics exposed at GET /metrics on the Coordinator.
+
+groups:
+  - name: ardi_coordinator_critical
+    interval: 30s
+    rules:
+      # SEV-1: Coordinator process is down. /metrics scrape fails.
+      - alert: ArdiCoordinatorDown
+        expr: up{job="ardi-coordinator"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Ardi Coordinator is unreachable"
+          description: "Prometheus has been unable to scrape /metrics from the Coordinator for 2 minutes. Check process / restart per RUNBOOK.md."
+
+      # SEV-1: No new epochs being opened — engine is stuck.
+      - alert: ArdiNoEpochsOpened
+        expr: increase(ardi_http_requests_total{path="/v1/epoch/current"}[10m]) > 0
+              and on() (time() - ardi_last_epoch_open_ts) > 600
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No new Ardi epoch opened in 10 minutes (expected every ~3 min)"
+          description: "Coordinator's epoch loop is wedged. Check chain RPC, signer key, and run_loop logs."
+
+      # SEV-1: Settlement worker silent for >25h (should run daily).
+      - alert: ArdiSettlementMissed
+        expr: (time() - ardi_last_settlement_submit_ts) > 90000   # 25h
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Daily settlement not submitted for >25h"
+          description: "ArdiMintController.settleDay was last called at {{ $value | humanizeTimestamp }}. Holders cannot claim emission for the missed day until this is resolved."
+
+  - name: ardi_coordinator_warning
+    interval: 1m
+    rules:
+      # SEV-2: VRF callbacks getting stuck.
+      - alert: ArdiVRFPendingHigh
+        expr: ardi_vrf_pending_requests > 5
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $value }} VRF requests pending > 30min"
+          description: "Either Chainlink subscription is unfunded, or the adapter is misconfigured. Check vrf.chain.link/base/<sub_id>."
+
+      # SEV-2: RPC errors spiking.
+      - alert: ArdiRpcErrorRate
+        expr: rate(ardi_rpc_errors_total[5m]) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RPC error rate is {{ $value | humanize }}/s"
+          description: "Indexer should auto-failover via rpc_url_backups. If sustained, check primary RPC provider."
+
+      # SEV-2: 5xx responses from Coordinator API.
+      - alert: ArdiHttp5xxRate
+        expr: |
+          rate(ardi_http_requests_total{status=~"5.."}[5m])
+          / rate(ardi_http_requests_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Coordinator 5xx rate >5% for 10min"
+
+      # SEV-2: Rate limit triggering a lot — possible DoS or spammy agent.
+      - alert: ArdiRateLimitElevated
+        expr: rate(ardi_http_requests_total{status="429"}[5m]) > 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $value | humanize }} 429s/sec sustained"
+          description: "Likely DoS or misbehaving client. Check top IPs in access log."
+
+      # SEV-2: Indexer falling behind.
+      - alert: ArdiIndexerLag
+        expr: (ardi_chain_head_block - ardi_indexer_last_block) > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Indexer lagging chain head by {{ $value }} blocks"
+          description: "Confirmation depth is 5 — anything > 100 means we're truly behind."
+
+      # SEV-2: Fusion oracle (LLM) error rate.
+      - alert: ArdiFusionOracleErrors
+        expr: rate(ardi_fusion_oracle_errors_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Fusion oracle errors {{ $value | humanize }}/s"
+          description: "Anthropic API down, validator rejecting outputs, or rate limited."
+
+  - name: ardi_coordinator_info
+    interval: 5m
+    rules:
+      # Helpful operational info — doesn't page, just shows up in dashboards.
+      - alert: ArdiBondEscrowFundingLow
+        expr: ardi_bond_escrow_awp_balance < 100000  # 100K AWP threshold
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "BondEscrow AWP balance low ({{ $value }})"

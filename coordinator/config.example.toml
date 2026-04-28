@@ -1,0 +1,76 @@
+# Ardi Coordinator config — copy to config.toml and fill in real values
+
+[server]
+host = "0.0.0.0"
+port = 8080
+# Trusted reverse-proxy CIDRs (audit F5). Set this if Coordinator sits behind
+# nginx / CloudFront / ALB; otherwise the rate limiter sees only the proxy IP
+# and all clients share one bucket. Leave empty/omitted for direct deploys.
+# Example for nginx-on-same-host: trusted_proxies = ["127.0.0.1/32", "::1/128"]
+# Example for AWS ALB inside VPC:  trusted_proxies = ["10.0.0.0/8"]
+# trusted_proxies = []
+
+[chain]
+# Base mainnet or sepolia. testnet for dev.
+rpc_url = "https://sepolia.base.org"
+chain_id = 84532
+
+[contracts]
+ardi_nft = "0x0000000000000000000000000000000000000000"
+ardi_token = "0x0000000000000000000000000000000000000000"
+bond_escrow = "0x0000000000000000000000000000000000000000"
+mint_controller = "0x0000000000000000000000000000000000000000"
+otc = "0x0000000000000000000000000000000000000000"
+awp_token = "0x0000000000000000000000000000000000000000"
+kya = "0x0000000000000000000000000000000000000000"
+
+[coordinator]
+# Hex private key WITHOUT 0x. Coordinator's signing key. Must be the address
+# registered as `coordinator` in ArdiNFT and ArdiMintController.
+private_key_env = "ARDI_COORDINATOR_PK"
+
+# Coordinator wallet for sending settle/slash txs (can be same as signer or different)
+# This one must hold ETH for gas.
+sender_pk_env = "ARDI_COORDINATOR_SENDER_PK"
+
+[epoch]
+duration_seconds = 180          # 3-minute epochs
+submission_window = 165         # last 15 sec for reveal
+riddles_per_epoch = 15
+max_submissions_per_agent = 5
+
+[mining]
+genesis_ts = 0                  # set at launch; unix timestamp of day 1 start
+mining_max_days = 14            # phase 1 length, after which sealing is expected
+
+[vault]
+# Path to vault file. If encrypted=true, must be a vault.enc produced by
+# coordinator/scripts/encrypt_vault.py. If false, treated as plaintext riddles.json
+# (DEV ONLY — never run production with plaintext).
+file = "/path/to/vault.enc"
+encrypted = true
+# Env var name where the passphrase is read from at startup.
+passphrase_env = "ARDI_VAULT_PASS"
+
+[fusion]
+# LLM provider for fusion compatibility scoring
+provider = "anthropic"
+model = "claude-sonnet-4-5"
+api_key_env = "ANTHROPIC_API_KEY"
+# Cache directory for fusion results (deterministic by (wordA, wordB) pair)
+cache_dir = "./fusion_cache"
+
+[settlement]
+# UTC hour at which daily Merkle root is built and submitted
+settle_hour_utc = 0
+# Daily emission split (basis points, sum must be ≤ 10000).
+# Default: 100% to NFT holders. Power-weighted Merkle airdrop.
+# To allocate a slice to a treasury / future fusion-rewards contract,
+# reduce holder_bps and raise fusion_bps; the on-chain `fusionPool` address
+# (set via setFusionPool) will receive that slice each day.
+holder_bps = 10000
+fusion_bps = 0
+
+[storage]
+# SQLite DB path
+db_path = "./coordinator.db"

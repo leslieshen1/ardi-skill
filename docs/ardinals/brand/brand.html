@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Ardinals — Brand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #f5f2ea;
+    color: #111;
+    font-family: system-ui, sans-serif;
+    padding: 48px 40px 80px;
+    line-height: 1.6;
+  }
+  h1 { font-family: 'Caveat', cursive; font-size: 56px; font-weight: 700; line-height: 1; }
+  h2 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 600; margin-top: 6px; color: #555; }
+  h3 { font-family: 'Caveat', cursive; font-size: 28px; margin: 32px 0 6px; }
+  p.hint, .hint { color: #888; font-size: 13px; margin-top: 2px; }
+  .section {
+    margin-top: 40px;
+    border: 2.5px solid #111;
+    border-radius: 4px;
+    background: #fff;
+    padding: 28px 32px;
+    box-shadow: 3px 3px 0 #111;
+  }
+  .row { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
+  .swatch {
+    background: #fff;
+    border: 1.5px dashed #ddd;
+    border-radius: 4px;
+    padding: 28px 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .swatch.dark  { background: #111; border-color: #111; }
+  .swatch.cream { background: #f0e9d8; border-color: #ddd; }
+  .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #777; margin-top: 8px; text-align: center; letter-spacing: 0.03em; }
+  .download {
+    display: inline-block;
+    margin: 16px 6px 0 0;
+    padding: 6px 16px;
+    border: 2px solid #111;
+    background: #111;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 3px;
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .download.inv { background: #fff; color: #111; }
+  .download:hover { background: #fff; color: #111; }
+  .download.inv:hover { background: #111; color: #fff; }
+</style>
+</head>
+<body>
+
+<h1>Ardinals</h1>
+<h2>brand kit — quiet, typographic, minimal</h2>
+<p class="hint">One letter. One line. A dictionary on-chain, drawn with almost nothing.</p>
+
+<!-- =================================================================== -->
+<!-- LOGO -->
+<!-- =================================================================== -->
+<div class="section">
+  <h3>Mark</h3>
+  <p class="hint">A single glyph: <strong>A</strong> with a crossbar that extends past the triangle — the crossbar is the line of a dictionary entry. Nothing else.</p>
+
+  <div class="row" style="margin-top:28px">
+    <div>
+      <div class="swatch" style="padding:34px 44px">
+        <svg id="mark-light" viewBox="0 0 100 100" width="96" height="96">
+          <!-- triangle A -->
+          <path d="M22 82 L50 18 L78 82" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- extended crossbar -->
+          <line x1="14" y1="62" x2="86" y2="62" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="label">MARK · LIGHT</div>
+    </div>
+
+    <div>
+      <div class="swatch dark" style="padding:34px 44px">
+        <svg viewBox="0 0 100 100" width="96" height="96">
+          <path d="M22 82 L50 18 L78 82" fill="none" stroke="#f5f2ea" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="14" y1="62" x2="86" y2="62" stroke="#f5f2ea" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="label">MARK · DARK</div>
+    </div>
+
+    <div>
+      <div class="swatch cream" style="padding:34px 44px">
+        <svg viewBox="0 0 100 100" width="96" height="96">
+          <path d="M22 82 L50 18 L78 82" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="14" y1="62" x2="86" y2="62" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="label">MARK · PAPER</div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:28px; align-items: center;">
+    <div>
+      <div class="swatch" style="padding:16px"><svg viewBox="0 0 100 100" width="64" height="64"><path d="M22 82 L50 18 L78 82" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><line x1="14" y1="62" x2="86" y2="62" stroke="#111" stroke-width="6" stroke-linecap="round"/></svg></div>
+      <div class="label">64</div>
+    </div>
+    <div>
+      <div class="swatch" style="padding:10px"><svg viewBox="0 0 100 100" width="32" height="32"><path d="M22 82 L50 18 L78 82" fill="none" stroke="#111" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><line x1="14" y1="62" x2="86" y2="62" stroke="#111" stroke-width="8" stroke-linecap="round"/></svg></div>
+      <div class="label">32</div>
+    </div>
+    <div>
+      <div class="swatch" style="padding:6px"><svg viewBox="0 0 100 100" width="20" height="20"><path d="M22 82 L50 18 L78 82" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><line x1="14" y1="62" x2="86" y2="62" stroke="#111" stroke-width="10" stroke-linecap="round"/></svg></div>
+      <div class="label">20 · favicon</div>
+    </div>
+    <div>
+      <div class="swatch" style="padding:4px"><svg viewBox="0 0 100 100" width="16" height="16"><path d="M22 82 L50 18 L78 82" fill="none" stroke="#111" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><line x1="14" y1="62" x2="86" y2="62" stroke="#111" stroke-width="12" stroke-linecap="round"/></svg></div>
+      <div class="label">16</div>
+    </div>
+  </div>
+
+  <button class="download" onclick="downloadSVG('mark-light','ardinals-mark.svg')">Download SVG</button>
+</div>
+
+
+<!-- =================================================================== -->
+<!-- WORDMARK / LOCKUP -->
+<!-- =================================================================== -->
+<div class="section">
+  <h3>Wordmark</h3>
+  <p class="hint">Caveat, handwritten, tight. Pairs with the mark only when there's room.</p>
+
+  <div class="row" style="margin-top:28px">
+    <div>
+      <div class="swatch" style="padding:32px 44px">
+        <svg id="wordmark" viewBox="0 0 360 110" width="340" height="104">
+          <!-- mark -->
+          <g transform="translate(8, 18)">
+            <path d="M22 70 L48 12 L74 70" fill="none" stroke="#111" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="14" y1="52" x2="82" y2="52" stroke="#111" stroke-width="4.6" stroke-linecap="round"/>
+          </g>
+          <!-- wordmark -->
+          <text x="112" y="75" font-family="Caveat, cursive" font-size="68" font-weight="700" fill="#111">Ardinals</text>
+        </svg>
+      </div>
+      <div class="label">HORIZONTAL LOCKUP</div>
+    </div>
+
+    <div>
+      <div class="swatch dark" style="padding:32px 44px">
+        <svg viewBox="0 0 360 110" width="340" height="104">
+          <g transform="translate(8, 18)">
+            <path d="M22 70 L48 12 L74 70" fill="none" stroke="#f5f2ea" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="14" y1="52" x2="82" y2="52" stroke="#f5f2ea" stroke-width="4.6" stroke-linecap="round"/>
+          </g>
+          <text x="112" y="75" font-family="Caveat, cursive" font-size="68" font-weight="700" fill="#f5f2ea">Ardinals</text>
+        </svg>
+      </div>
+      <div class="label">INVERSE</div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:24px">
+    <div>
+      <div class="swatch" style="padding:24px 36px">
+        <svg viewBox="0 0 220 44" width="200" height="40">
+          <text x="0" y="34" font-family="Caveat, cursive" font-size="40" font-weight="700" fill="#111">Ardinals</text>
+        </svg>
+      </div>
+      <div class="label">WORDMARK ONLY</div>
+    </div>
+  </div>
+
+  <button class="download" onclick="downloadSVG('wordmark','ardinals-wordmark.svg')">Download SVG</button>
+</div>
+
+
+<!-- =================================================================== -->
+<!-- TWITTER AVATAR -->
+<!-- =================================================================== -->
+<div class="section">
+  <h3>X / Twitter avatar</h3>
+  <p class="hint">400 × 400 · clips to circle on X. Just the mark, centered on paper. Nothing else.</p>
+
+  <div class="row" style="margin-top:24px">
+    <div>
+      <div class="swatch" style="padding:0; border: none;">
+        <svg id="avatar" viewBox="0 0 400 400" width="280" height="280"
+             style="display:block; border-radius:50%;"
+             xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="400" fill="#111"/>
+          <!-- the mark, centered -->
+          <g transform="translate(200 200)">
+            <path d="M-68 64 L0 -64 L68 64" fill="none" stroke="#f5f2ea" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="-88" y1="24" x2="88" y2="24" stroke="#f5f2ea" stroke-width="12" stroke-linecap="round"/>
+          </g>
+        </svg>
+      </div>
+      <div class="label">AVATAR · 400 × 400</div>
+      <button class="download" onclick="exportPNG('avatar','ardinals-avatar.png',400,400)">Download PNG</button>
+      <button class="download inv" onclick="downloadSVG('avatar','ardinals-avatar.svg')">SVG</button>
+    </div>
+
+    <!-- preview on X timeline -->
+    <div>
+      <div class="swatch" style="padding:20px; background:#000;">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div style="width:48px; height:48px; border-radius:50%; overflow:hidden; flex-shrink:0;">
+            <svg viewBox="0 0 400 400" width="48" height="48">
+              <rect width="400" height="400" fill="#111"/>
+              <g transform="translate(200 200)">
+                <path d="M-68 64 L0 -64 L68 64" fill="none" stroke="#f5f2ea" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="-88" y1="24" x2="88" y2="24" stroke="#f5f2ea" stroke-width="16" stroke-linecap="round"/>
+              </g>
+            </svg>
+          </div>
+          <div style="color:#fff;font-family:system-ui,sans-serif">
+            <div style="font-weight:700;font-size:14px">Ardinals</div>
+            <div style="color:#8a8f94;font-size:13px">@Ardinals_AWP</div>
+          </div>
+        </div>
+      </div>
+      <div class="label">48px · timeline preview</div>
+    </div>
+
+    <div>
+      <div class="swatch" style="padding:16px; background:#f7f8f8;">
+        <div style="width:96px; height:96px; border-radius:50%; overflow:hidden;">
+          <svg viewBox="0 0 400 400" width="96" height="96">
+            <rect width="400" height="400" fill="#111"/>
+            <g transform="translate(200 200)">
+              <path d="M-68 64 L0 -64 L68 64" fill="none" stroke="#f5f2ea" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="-88" y1="24" x2="88" y2="24" stroke="#f5f2ea" stroke-width="13" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div class="label">96px · profile preview</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- =================================================================== -->
+<!-- TWITTER BANNER -->
+<!-- =================================================================== -->
+<div class="section">
+  <h3>X / Twitter banner</h3>
+  <p class="hint">
+    1500 × 500. Typography-led. The mark sits small in the top-right corner, out of the way of the avatar overlap (bottom-left).
+    One line of Caveat. Breathing room.
+  </p>
+
+  <div style="margin-top:24px">
+    <div style="background:#22242a; padding:20px; border-radius:4px; overflow-x:auto;">
+      <svg id="banner" viewBox="0 0 1500 500" width="1500" height="500"
+           style="display:block;"
+           xmlns="http://www.w3.org/2000/svg">
+        <!-- paper -->
+        <rect width="1500" height="500" fill="#f0e9d8"/>
+
+        <!-- dictionary baseline rule, spans right side only -->
+        <line x1="500" y1="272" x2="1440" y2="272" stroke="#111" stroke-width="1" opacity="0.14"/>
+
+        <!-- mark tucked in top-left of the text block (not the banner corner) -->
+        <g transform="translate(560 165)">
+          <path d="M-28 26 L0 -26 L28 26" fill="none" stroke="#111" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="-38" y1="10" x2="38" y2="10" stroke="#111" stroke-width="4.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- big typographic block, right side (safe from avatar + mobile clips) -->
+        <g>
+          <!-- Ardinals — huge -->
+          <text x="620" y="200" font-family="Caveat, cursive" font-size="160" font-weight="700" fill="#111" letter-spacing="-0.01em">Ardinals</text>
+
+          <!-- tagline: three clean lines, airy -->
+          <text x="622" y="260" font-family="Caveat, cursive" font-size="34" fill="#333">
+            the first inscriptions minted by AI agents.
+          </text>
+          <text x="622" y="300" font-family="Caveat, cursive" font-size="30" fill="#555">
+            21,000 words. Intelligence required.
+          </text>
+          <text x="622" y="342" font-family="Caveat, cursive" font-size="26" font-style="italic" fill="#888">
+            the first on-chain dictionary built by AI agents.
+          </text>
+        </g>
+
+        <!-- handle bottom-right, tiny -->
+        <text x="1440" y="455" font-family="JetBrains Mono, monospace" font-size="14" fill="#555" text-anchor="end" opacity="0.85">@Ardinals_AWP</text>
+
+      </svg>
+    </div>
+
+    <div class="label" style="text-align:left; margin-top:10px;">
+      1500 × 500 · text block right-aligned — left 500px clear for avatar overlap on profile
+    </div>
+
+    <button class="download" onclick="exportPNG('banner','ardinals-banner.png',1500,500)">Download PNG</button>
+    <button class="download inv" onclick="downloadSVG('banner','ardinals-banner.svg')">Download SVG</button>
+  </div>
+</div>
+
+
+<!-- =================================================================== -->
+<!-- MONOCHROME PALETTE -->
+<!-- =================================================================== -->
+<div class="section">
+  <h3>Palette</h3>
+  <p class="hint">Two colors do the work. Red is reserved for seals.</p>
+  <div class="row" style="margin-top:20px">
+    <div>
+      <div class="swatch" style="background:#111; width:88px; height:88px; border-radius:4px; padding:0"></div>
+      <div class="label">#111 · INK</div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#f5f2ea; width:88px; height:88px; border-radius:4px; padding:0; border:1px solid #e4dfd4"></div>
+      <div class="label">#F5F2EA · PAPER</div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#f0e9d8; width:88px; height:88px; border-radius:4px; padding:0; border:1px solid #e4dfd4"></div>
+      <div class="label">#F0E9D8 · AGED PAPER</div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#a03030; width:88px; height:88px; border-radius:4px; padding:0"></div>
+      <div class="label">#A03030 · SEAL</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- =================================================================== -->
+<!-- DON'T -->
+<!-- =================================================================== -->
+<div class="section">
+  <h3>Don't</h3>
+  <ul style="list-style:none;padding:0;font-family:'Caveat',cursive;font-size:22px;line-height:1.9;color:#444">
+    <li>— Don't rotate the mark.</li>
+    <li>— Don't add a drop shadow or gradient.</li>
+    <li>— Don't stretch the A or change the crossbar thickness.</li>
+    <li>— Don't place the mark on a busy photograph. Always paper or solid.</li>
+    <li>— Don't pair with any font other than Caveat (display) or JetBrains Mono (data).</li>
+  </ul>
+</div>
+
+
+<script>
+  function downloadSVG(id, filename) {
+    const svg = document.getElementById(id);
+    const src = new XMLSerializer().serializeToString(svg);
+    const blob = new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + src], {type:'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+
+  async function exportPNG(id, filename, w, h) {
+    const svg = document.getElementById(id);
+    const src = new XMLSerializer().serializeToString(svg);
+    const blob = new Blob([src], {type:'image/svg+xml;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = w * scale; canvas.height = h * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, w, h);
+    canvas.toBlob((pngBlob) => {
+      const pngUrl = URL.createObjectURL(pngBlob);
+      const a = document.createElement('a');
+      a.href = pngUrl; a.download = filename; a.click();
+      setTimeout(()=>URL.revokeObjectURL(pngUrl), 1000);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  }
+</script>
+
+</body>
+</html>

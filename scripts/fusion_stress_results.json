@@ -1,0 +1,282 @@
+{
+  "static": {
+    "word_length": {
+      "min": 1,
+      "max": 25,
+      "p50": 3.0,
+      "p95": 9,
+      "p99": 11
+    },
+    "power_per_rarity": {
+      "legendary": {
+        "n": 1117,
+        "min": 74,
+        "max": 100,
+        "mean": 79.5
+      },
+      "rare": {
+        "n": 3790,
+        "min": 62,
+        "max": 73,
+        "mean": 66.8
+      },
+      "uncommon": {
+        "n": 4790,
+        "min": 52,
+        "max": 61,
+        "mean": 55.5
+      },
+      "common": {
+        "n": 11303,
+        "min": 3,
+        "max": 51,
+        "mean": 36.7
+      }
+    },
+    "cross_language_word_collisions": {
+      "count": 578,
+      "samples": {
+        "nft": [
+          [
+            "en",
+            75
+          ],
+          [
+            "zh",
+            88
+          ]
+        ],
+        "yeah": [
+          [
+            "en",
+            38
+          ],
+          [
+            "fr",
+            42
+          ]
+        ],
+        "man": [
+          [
+            "en",
+            76
+          ],
+          [
+            "fr",
+            65
+          ]
+        ],
+        "stop": [
+          [
+            "en",
+            38
+          ],
+          [
+            "fr",
+            55
+          ]
+        ],
+        "long": [
+          [
+            "en",
+            38
+          ],
+          [
+            "fr",
+            46
+          ]
+        ]
+      }
+    },
+    "suspicious_words": {
+      "count": 0,
+      "samples": []
+    },
+    "pair_key_collisions_in_500_sample": 0
+  },
+  "pipeline": {
+    "pairs_tested": 500,
+    "llm_returned_bad_output": 29,
+    "validator_caught": 29,
+    "slipped_through": 0,
+    "compat_distribution": {
+      "0.4": 46,
+      "0.2": 172,
+      "0.1": 133,
+      "0.6": 63,
+      "0.5": 68,
+      "0.7": 7,
+      "1.0": 6,
+      "0.9": 5
+    },
+    "success_distribution": {
+      "success": 178,
+      "fail": 322
+    },
+    "new_power_overflow_uint16": 0,
+    "new_power_max_seen": 489,
+    "examples_slipped_through": [
+      {
+        "reason": "suggested_language invalid: lang_str='klingon', lang_id=None",
+        "raw": {
+          "compatibility": 0.7,
+          "suggested_word": "valid",
+          "suggested_language": "klingon",
+          "rationale": "x"
+        }
+      },
+      {
+        "reason": "compatibility out of [0,1]: 1.5",
+        "raw": {
+          "compatibility": 1.5,
+          "suggested_word": "valid",
+          "suggested_language": "en",
+          "rationale": "x"
+        }
+      },
+      {
+        "reason": "suggested_word not a string: list",
+        "raw": {
+          "compatibility": 0.5,
+          "suggested_word": [
+            "valid",
+            "invalid"
+          ],
+          "suggested_language": "en",
+          "rationale": "x"
+        }
+      },
+      {
+        "reason": "suggested_word contains '||' (pair_key delimiter)",
+        "raw": {
+          "compatibility": 0.5,
+          "suggested_word": "bad||word\n",
+          "suggested_language": "en",
+          "rationale": "x"
+        }
+      },
+      {
+        "reason": "suggested_word too long (200 > 32)",
+        "raw": {
+          "compatibility": 0.9,
+          "suggested_word": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...",
+          "suggested_language": "en",
+          "rationale": "x"
+        }
+      }
+    ]
+  },
+  "compounding": {
+    "chains_run": 30,
+    "max_generations_per_chain": 8,
+    "chains_that_would_overflow_without_cap": 30,
+    "earliest_raw_overflow_at_generation": 6,
+    "chains_that_were_capped": 30,
+    "max_capped_power": 65535,
+    "sample_chain": [
+      {
+        "word": "envoyer",
+        "lang": 4,
+        "power": 35,
+        "gen": 0
+      },
+      {
+        "word": "g1",
+        "lang": 4,
+        "power": 261,
+        "raw_power": 261,
+        "capped": false,
+        "gen": 1,
+        "from_pair": [
+          "envoyer",
+          "公園"
+        ],
+        "comp": 0.1,
+        "mult": 3.0
+      },
+      {
+        "word": "g2",
+        "lang": 4,
+        "power": 969,
+        "raw_power": 969,
+        "capped": false,
+        "gen": 2,
+        "from_pair": [
+          "g1",
+          "妇女"
+        ],
+        "comp": 0.1,
+        "mult": 3.0
+      },
+      {
+        "word": "g3",
+        "lang": 4,
+        "power": 3081,
+        "raw_power": 3081,
+        "capped": false,
+        "gen": 3,
+        "from_pair": [
+          "g2",
+          "british"
+        ],
+        "comp": 0.1,
+        "mult": 3.0
+      },
+      {
+        "word": "g4",
+        "lang": 4,
+        "power": 9399,
+        "raw_power": 9399,
+        "capped": false,
+        "gen": 4,
+        "from_pair": [
+          "g3",
+          "tag"
+        ],
+        "comp": 0.1,
+        "mult": 3.0
+      },
+      {
+        "word": "g5",
+        "lang": 4,
+        "power": 28353,
+        "raw_power": 28353,
+        "capped": false,
+        "gen": 5,
+        "from_pair": [
+          "g4",
+          "今后"
+        ],
+        "comp": 0.1,
+        "mult": 3.0
+      },
+      {
+        "word": "g6",
+        "lang": 4,
+        "power": 65535,
+        "raw_power": 85230,
+        "capped": true,
+        "gen": 6,
+        "from_pair": [
+          "g5",
+          "designer"
+        ],
+        "comp": 0.1,
+        "mult": 3.0
+      }
+    ]
+  },
+  "cache_poisoning": {
+    "first_call_persisted_permanently": true,
+    "version_or_model_in_pair_key": false,
+    "rationale_can_drift_silently_with_model_revision": true,
+    "mitigation_in_code": "INSERT OR REPLACE means a Coordinator restart with a new model could overwrite, but it requires that exact pair to be evaluated again",
+    "recommended_fix": "include model_id + prompt_version in pair_key, OR add a 'cached_at' staleness threshold to refresh after N days"
+  },
+  "issues": [
+    [
+      "MEDIUM",
+      "fusion_cache has no model/version pinning — first LLM hallucination is permanent"
+    ]
+  ]
+}

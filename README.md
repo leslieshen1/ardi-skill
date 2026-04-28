@@ -209,18 +209,49 @@ All optional — defaults work for the live testnet:
 | `DEEPSEEK_API_KEY` | — | for `--solver deepseek` |
 | (etc) | — | one per provider |
 
-## Files
+## Repository layout
 
-| File | Purpose |
-|---|---|
-| `src/ardi_skill/sdk.py` | Python SDK — `ArdiClient` class wrapping web3.py |
-| `src/ardi_skill/agent.py` | Mining loop + CLI dispatch |
-| `src/ardi_skill/wallet.py` | Local keystore management |
-| `src/ardi_skill/onboard.py` | One-shot setup (mint AWP / KYA / bond) |
-| `src/ardi_skill/_legacy.py` | DEPRECATED V1 (off-chain submit) |
-| `examples/full_cycle.py` | Step-by-step demo of every SDK call |
-| `tests/test_sdk.py` | Unit tests — commit_hash format especially |
-| `SKILL.md` | Claude Code skill manifest |
+This repo is the complete reference implementation — **agent SDK + on-chain
+contracts + Coordinator service** — so anyone can read or redeploy the entire
+Ardi WorkNet end to end.
+
+```
+ardi-skill/
+├── src/ardi_skill/      Python SDK + CLI (what `pip install` installs)
+│   ├── sdk.py           ArdiClient — web3.py wrapper for every contract call
+│   ├── agent.py         Mining loop + CLI dispatch
+│   ├── actions.py       commit / reveal / inscribe / market actions
+│   ├── forge.py         Fusion CLI — quote, sign, fuse pairs
+│   ├── onboard.py       One-shot AWP-mint / KYA / bond setup
+│   ├── wallet.py        Local keystore + multi-wallet support
+│   └── _legacy.py       DEPRECATED v1 (off-chain submit)
+├── contracts/           Foundry project — Solidity sources + audit-fixed tests
+│   ├── src/             ArdiNFT · ArdiEpochDraw · ArdiMintController · ArdiOTC
+│   │                    ArdiBondEscrow · ArdiToken · ChainlinkVRFAdapter · Timelock
+│   ├── test/            forge unit + invariant + adversary tests
+│   └── script/          DeployTestnet.s.sol (Base Sepolia), DeployLocal.s.sol
+├── coordinator/         FastAPI server — epoch loop, fusion oracle, settlement
+│   ├── src/coordinator/ api · epoch · fusion · forge · indexer · settlement · …
+│   └── config.testnet.toml  Base Sepolia config (filled by wire_testnet_config.py)
+├── scripts/             Deployment helpers (wire_testnet_config, register_worknet,
+│                        fund_agent_eth, testnet_demo_b/c, airdrop merkle proofs)
+├── tools/               load_test.py (concurrent agents stress test),
+│                        fix_riddle_lang_mismatch.py, mint_for_test.py, vault_merkle.py
+├── docs/                design-spec, testnet-runbook, AWP-INTEGRATION, AIPs
+├── examples/            full_cycle.py — step-by-step SDK demo
+├── tests/               SDK unit tests
+└── SKILL.md             Claude Code skill manifest
+```
+
+If you only want to **run an agent** against the live testnet, you can ignore
+`contracts/` and `coordinator/` — they're there for transparency and for
+operators who want to spin up their own WorkNet. To **deploy your own**, see
+`docs/testnet-runbook.md`.
+
+> **Vault data** (21K riddles + answer key) lives at
+> [wordbank-riddle-bench](https://github.com/leslieshen1/wordbank-riddle-bench).
+> The Merkle root is baked into `ArdiEpochDraw.VAULT_MERKLE_ROOT` at deploy
+> time — see `tools/vault_merkle.py`.
 
 ## Provable fairness
 
@@ -238,7 +269,7 @@ root.
 ## Out of scope
 
 - Frontend / UI — see [ardinals-demo](https://ardinals-demo.vercel.app)
-- Coordinator service — operator concern; runs on the operator's machine
+  (source not in this repo)
 - Mainnet — not live yet; this is the testnet rehearsal
 - AWP-level operations (wallet / staking / KYA on RootNet) — handled
   separately by [awp-skill](https://github.com/awp-worknet/awp-skill)

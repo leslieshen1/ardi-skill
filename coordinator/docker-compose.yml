@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  coordinator:
+    build: .
+    container_name: ardi-coordinator
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ARDI_COORDINATOR_PK: ${ARDI_COORDINATOR_PK}
+      ARDI_COORDINATOR_SENDER_PK: ${ARDI_COORDINATOR_SENDER_PK:-${ARDI_COORDINATOR_PK}}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    volumes:
+      - ./config.toml:/app/config.toml:ro
+      - coord-data:/app/data
+      - coord-fusion-cache:/app/fusion_cache
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8080/v1/health', timeout=3).raise_for_status()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  coord-data:
+  coord-fusion-cache:

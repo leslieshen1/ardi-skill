@@ -1,0 +1,225 @@
+{
+  "vault_size": 21000,
+  "linear": {
+    "total": 20999,
+    "validator_rejected": 996,
+    "success": 5019,
+    "fail": 14984,
+    "compat_buckets": {
+      "0.6": 2772,
+      "0.5": 2933,
+      "0.4": 2390,
+      "0.1": 5651,
+      "0.2": 5528,
+      "0.3": 443,
+      "0.7": 138,
+      "0.0": 148
+    },
+    "power_distribution": {
+      "100-500": 4429,
+      "0-100": 590
+    },
+    "capped_count": 0,
+    "cumulative_power_created": 855045,
+    "by_lang_pair_success": {
+      "('en', 'en')": [
+        1278,
+        4382
+      ],
+      "('en', 'fr')": [
+        19,
+        64
+      ],
+      "('en', 'zh')": [
+        5,
+        16
+      ],
+      "('zh', 'zh')": [
+        1015,
+        3443
+      ],
+      "('ja', 'zh')": [
+        96,
+        501
+      ],
+      "('ja', 'ja')": [
+        619,
+        1928
+      ],
+      "('ja', 'ko')": [
+        2,
+        10
+      ],
+      "('ko', 'ko')": [
+        931,
+        1906
+      ],
+      "('fr', 'ko')": [
+        1,
+        6
+      ],
+      "('fr', 'fr')": [
+        488,
+        1360
+      ],
+      "('de', 'fr')": [
+        7,
+        32
+      ],
+      "('de', 'de')": [
+        552,
+        1307
+      ],
+      "('de', 'en')": [
+        2,
+        6
+      ],
+      "('de', 'ja')": [
+        0,
+        2
+      ],
+      "('fr', 'ja')": [
+        1,
+        5
+      ],
+      "('fr', 'zh')": [
+        2,
+        1
+      ],
+      "('de', 'ko')": [
+        1,
+        3
+      ],
+      "('ko', 'zh')": [
+        0,
+        4
+      ],
+      "('de', 'zh')": [
+        0,
+        5
+      ],
+      "('en', 'ja')": [
+        0,
+        3
+      ]
+    },
+    "by_rarity_pair_success": {
+      "('legendary', 'legendary')": [
+        83,
+        74
+      ],
+      "('legendary', 'rare')": [
+        25,
+        515
+      ],
+      "('rare', 'uncommon')": [
+        131,
+        1860
+      ],
+      "('rare', 'rare')": [
+        379,
+        344
+      ],
+      "('legendary', 'uncommon')": [
+        22,
+        418
+      ],
+      "('common', 'uncommon')": [
+        264,
+        4408
+      ],
+      "('common', 'common')": [
+        3341,
+        3038
+      ],
+      "('common', 'rare')": [
+        207,
+        3047
+      ],
+      "('common', 'legendary')": [
+        57,
+        786
+      ],
+      "('uncommon', 'uncommon')": [
+        510,
+        494
+      ]
+    },
+    "elapsed_s": 0.1
+  },
+  "cross_language": {
+    "total": 578,
+    "success": 542,
+    "fail": 14,
+    "validator_rejected": 22,
+    "compat_min": 0.92501952216262,
+    "compat_max": 0.9749890351900831,
+    "compat_mean": 0.949,
+    "elapsed_s": 0.0
+  },
+  "stratified": {
+    "total": 1500,
+    "validator_rejected": 77,
+    "success": 253,
+    "fail": 1170,
+    "elapsed_s": 0.01,
+    "cell_count": 300,
+    "sample_cells": [
+      [
+        "en/legendary × en/legendary",
+        {
+          "success": 1,
+          "fail": 3,
+          "validator_rejected": 1
+        }
+      ],
+      [
+        "en/legendary × en/rare",
+        {
+          "success": 1,
+          "fail": 4,
+          "validator_rejected": 0
+        }
+      ],
+      [
+        "en/legendary × en/uncommon",
+        {
+          "success": 0,
+          "fail": 5,
+          "validator_rejected": 0
+        }
+      ],
+      [
+        "en/legendary × en/common",
+        {
+          "success": 2,
+          "fail": 2,
+          "validator_rejected": 1
+        }
+      ],
+      [
+        "en/legendary × fr/rare",
+        {
+          "success": 0,
+          "fail": 5,
+          "validator_rejected": 0
+        }
+      ]
+    ]
+  },
+  "compound": {
+    "chains_run": 200,
+    "max_generations": 12,
+    "final_power_min": 8,
+    "final_power_max": 676,
+    "final_power_mean": 88.6,
+    "final_power_p50": 56,
+    "chains_hit_cap": 0,
+    "earliest_cap_gen": null,
+    "median_cap_gen": null,
+    "elapsed_s": 0.0
+  },
+  "total_fusions": 23077,
+  "total_validator_rejects": 1095,
+  "issues": []
+}

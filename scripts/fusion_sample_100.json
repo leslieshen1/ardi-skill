@@ -1,0 +1,2302 @@
+[
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "style",
+      "riddle": "What makes two people do the same thing differently — the fingerprint inside every gesture, the invisible signature that says who did this.",
+      "difficulty": 16,
+      "notes": "Focuses on individual distinctiveness in execution.",
+      "power": 72,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "style",
+      "riddle": "What the French perfected that English borrowed back. A thin sharp object used to write — now meaning how you write itself.",
+      "difficulty": 72,
+      "notes": "References stylus origin and French fashion/style cultural dominance.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "fr"
+    },
+    "pair_id": 1
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "支持",
+      "riddle": "What you lend when you cannot touch — the Japanese act of bearing weight from afar. Two kanji that mean holding someone else's cause aloft.",
+      "difficulty": 14,
+      "notes": "Clarifies this is actually Japanese (shiji) meaning 'to support,' correcting the language error. [overnight fix]",
+      "power": 64,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "b": {
+      "word": "支持",
+      "riddle": "The beam that holds the roof while others sleep. A verb that carries more than weight.",
+      "difficulty": 19,
+      "notes": "Architectural metaphor for bearing burden; avoids help/assist synonyms.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "pair_id": 2
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "bar",
+      "riddle": "A long wooden table where strangers sit shoulder to shoulder, pouring liquid courage until midnight.",
+      "difficulty": 21,
+      "notes": "Drinking establishment focus; risk: 'wooden' and 'table' are generic furniture words.",
+      "power": 61,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "bar",
+      "riddle": "A length of metal, a place to drink, or the musical staff — all boundaries of some kind.",
+      "difficulty": 9,
+      "notes": "Polysemy of barrier/establishment/measure; hard ban avoided by focusing on 'boundary' concept.",
+      "power": 48,
+      "rarity": "common",
+      "language": "fr"
+    },
+    "pair_id": 3
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "内部",
+      "riddle": "The room where the walls know secrets. What insiders know and outsiders guess at.",
+      "difficulty": 9,
+      "notes": "Inside/privacy metaphor; common spatial concept.",
+      "power": 42,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "b": {
+      "word": "内部",
+      "riddle": "The hidden side of every wall and border, where the real work happens while outsiders only guess at what goes on within.",
+      "difficulty": 11,
+      "notes": "Contrast between exterior perception and interior reality.",
+      "power": 28,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "pair_id": 4
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "respect",
+      "riddle": "The distance we give each other without stepping back. A bow the heart makes when it recognizes something it cannot touch.",
+      "difficulty": 21,
+      "notes": "Frames it as emotional distance and reverence, not the word itself.",
+      "power": 75,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "respect",
+      "riddle": "What you owe to those who earned it. The French say it means looking back — regarding someone, seeing them fully. English took the word but kept only one shade of meaning.",
+      "difficulty": 55,
+      "notes": "Etymological angle on Latin 'respicere' (to look back), French connection is subtle.",
+      "power": 65,
+      "rarity": "rare",
+      "language": "fr"
+    },
+    "pair_id": 5
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "commence",
+      "riddle": "The formal verb that launches ceremony — what graduations and weddings do when speeches end, weightier than 'start' and more dignified than 'begin.'",
+      "difficulty": 32,
+      "notes": "Clarifies English 'commence' as formal alternative to start/begin, removes French references. [overnight fix]",
+      "power": 35,
+      "rarity": "common",
+      "language": "en"
+    },
+    "b": {
+      "word": "commence",
+      "riddle": "A fancier word for starting — the French gave it to mean 'begin' simply, while English kept it for ceremonies and formal starts.",
+      "difficulty": 16,
+      "notes": "Contrasts 'start' vs. 'begin formally' — risk is this exists as an English word too, making the French angle subtle.",
+      "power": 38,
+      "rarity": "common",
+      "language": "fr"
+    },
+    "pair_id": 6
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "pause",
+      "riddle": "Time held between thumb and finger. The shortest way to remember you exist before the rushing returns.",
+      "difficulty": 39,
+      "notes": "Conscious interruption; the act of stopping as a form of attention.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "pause",
+      "riddle": "A French word for the brief silence in music, the comma in speech, the moment when breath returns and movement hesitates before deciding what comes next.",
+      "difficulty": 36,
+      "notes": "The caesura in art and life — a lifted suspension.",
+      "power": 56,
+      "rarity": "uncommon",
+      "language": "fr"
+    },
+    "pair_id": 7
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "方法",
+      "riddle": "The way through when straight ahead is blocked. A path others have walked before you. The Chinese term combines direction with the rule or law itself.",
+      "difficulty": 20,
+      "notes": "Alludes to the etymology of 'method' as way + law, hints at Chinese origin.",
+      "power": 54,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "b": {
+      "word": "方法",
+      "riddle": "The square and the compass, the path cut through wilderness — Japanese writes this as 'direction' plus 'law,' as if every technique were a kind of compass bearing toward solution.",
+      "difficulty": 23,
+      "notes": "Straightforward metaphor about methodology — ho/hō meaning direction/law.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "ja"
+    },
+    "pair_id": 8
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "文化",
+      "riddle": "What generations leave behind. The habits, arts, and jokes that make one people recognize each other — the invisible air a country breathes.",
+      "difficulty": 65,
+      "notes": "Culture as transmitted inheritance.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "ja"
+    },
+    "b": {
+      "word": "文化",
+      "riddle": "What people make when they live together long enough — the shared air of habits, stories, and signs no one remembers learning.",
+      "difficulty": 5,
+      "notes": "Anthropological framing, avoids direct naming.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "pair_id": 9
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "祖母",
+      "riddle": "Father's mother, housed in two kanji that speak of a grandmother's dignity. More formal than the familiar nickname children whisper — the respect of an adult grandchild addressing her properly.",
+      "difficulty": 38,
+      "notes": "Contrasts the formal written term with the familiar 'obaa-chan' that no one writes down.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "ja"
+    },
+    "b": {
+      "word": "祖母",
+      "riddle": "The one who held you before you had a name. A Chinese word for the woman who remembers your beginning — her hands are the oldest you know.",
+      "difficulty": 27,
+      "notes": "Focuses on the maternal grandmother relationship; hints Chinese origin.",
+      "power": 65,
+      "rarity": "rare",
+      "language": "zh"
+    },
+    "pair_id": 10
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "地方",
+      "riddle": "Not the center but the elsewhere. What Tokyo calls the rest of Japan — the provinces, the hinterland, anywhere the capital is not.",
+      "difficulty": 72,
+      "notes": "Central vs. provincial dichotomy in Japanese geography; hard for non-Japanese to grasp the nuance.",
+      "power": 42,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "b": {
+      "word": "地方",
+      "riddle": "Every answer requires one. Where your feet are, where you're going, where you lost it. A Chinese word for 'there' rather than 'here' — the elsewhere that gives location its meaning.",
+      "difficulty": 25,
+      "notes": "Plays on place/space duality; hints at Chinese without giving characters.",
+      "power": 42,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 11
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "unique",
+      "riddle": "The word we use when the world has made exactly one of something. No echo, no twin — the lonely pride of being unrepeatable.",
+      "difficulty": 16,
+      "notes": "Concept of singularity; avoids only/solitary explicitly.",
+      "power": 54,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "unique",
+      "riddle": "The French word for one of a kind — what snowflakes claim to be, what fingerprints prove, what every artwork pretends to achieve.",
+      "difficulty": 38,
+      "notes": "Singularity and rarity — the 'only one' angle.",
+      "power": 64,
+      "rarity": "rare",
+      "language": "fr"
+    },
+    "pair_id": 12
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "阻止",
+      "riddle": "The Japanese act of throwing oneself in the way — two syllables that mean stopping something cold. When will becomes a barrier and progress meets an end.",
+      "difficulty": 54,
+      "notes": "Anchors to the Japanese word (soshi) meaning 'to prevent/stop,' not a gesture description. [overnight fix]",
+      "power": 45,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "b": {
+      "word": "阻止",
+      "riddle": "The wall that says enough. When motion meets a will stronger than gravity.",
+      "difficulty": 20,
+      "notes": "Abstract metaphor of resistance as a barrier; avoids directional verbs.",
+      "power": 45,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 13
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "parole",
+      "riddle": "In the language of Molière, this word means simply 'word'—but in English, it became the conditional promise a prisoner makes at the gate. A linguistic crossing where French speech meets legal freedom.",
+      "difficulty": 5,
+      "notes": "Clarified that parole IS French (for 'word') while also being an English legal term—anchoring to the French meaning as primary. [overnight fix]",
+      "power": 42,
+      "rarity": "common",
+      "language": "en"
+    },
+    "b": {
+      "word": "parole",
+      "riddle": "The French learned this word from Italian — speech, breath set free. In law, it means what prisoners wait for: their word given back.",
+      "difficulty": 55,
+      "notes": "Double meaning in French: speech AND probation/early release.",
+      "power": 47,
+      "rarity": "common",
+      "language": "fr"
+    },
+    "pair_id": 14
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "死者",
+      "riddle": "Those who have finished their story. The silent majority that every cemetery welcomes — outnumbering the living across every span of history.",
+      "difficulty": 6,
+      "notes": "Focus on finality and the quantitative reality",
+      "power": 78,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "b": {
+      "word": "死者",
+      "riddle": "The ones who have stopped collecting years. A Japanese compound pairs them with death, as if their new name were simply 'the person who died.'",
+      "difficulty": 5,
+      "notes": "Simple concept made slightly mysterious through circumlocution; hints at compound structure.",
+      "power": 70,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "pair_id": 15
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "魔法",
+      "riddle": "What violates the laws without permission. The Japanese word joins the characters for demon and method — the impossible art that turns frogs into princes or card tricks into gasps.",
+      "difficulty": 17,
+      "notes": "Japanese compound; hints at supernatural through 'demon method' character clue",
+      "power": 79,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "b": {
+      "word": "魔法",
+      "riddle": "What a witch whispers to change the world. The ancient word for impossible things that happen anyway.",
+      "difficulty": 11,
+      "notes": "Focus on the supernatural/witchcraft angle; 'law' (fa) appears but not in order.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "pair_id": 16
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "不明",
+      "riddle": "A Chinese pair of characters for what cannot be named — the dark that follows every question, the shape your knowledge makes when it meets its own edge.",
+      "difficulty": 85,
+      "notes": "Focuses on the philosophical dimension of 'not clear' — the edge of knowledge, not just 'unclear'.",
+      "power": 42,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "b": {
+      "word": "不明",
+      "riddle": "What cannot be named, what the fog swallowed — Japanese stacks 'not' and 'bright' for what remains in darkness, whether a missing person or a question that refuses an answer.",
+      "difficulty": 20,
+      "notes": "Simple negation compound — fumei literally 'not bright' or unclear.",
+      "power": 42,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "pair_id": 17
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "james",
+      "riddle": "A name that once belonged to kings and apostles, now to friends and strangers alike. Five letters that open doors in every English-speaking city.",
+      "difficulty": 20,
+      "notes": "References its status as a classic masculine name without spelling it out.",
+      "power": 48,
+      "rarity": "common",
+      "language": "en"
+    },
+    "b": {
+      "word": "james",
+      "riddle": "An English name that French speakers keep exactly as written — pronounced their way, spelled your way. The apostle's name that crossed linguistic borders unchanged.",
+      "difficulty": 3,
+      "notes": "Pivots to the accurate fact that 'James' is an English name used in French without French adaptation (unlike most names). [auto-rewritten after MISMATCH verdict]",
+      "power": 48,
+      "rarity": "common",
+      "language": "fr"
+    },
+    "pair_id": 18
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "part",
+      "riddle": "What every wave is to the ocean. What a chapter is to a novel. The word that whispers: you need not be whole to matter.",
+      "difficulty": 30,
+      "notes": "Fractional relationship metaphor",
+      "power": 48,
+      "rarity": "common",
+      "language": "en"
+    },
+    "b": {
+      "word": "part",
+      "riddle": "The French adverb of incompleteness — not everything, not nothing, but somewhere in between, indicating that what you see or do extends only to a degree.",
+      "difficulty": 22,
+      "notes": "Corrected from the verb 'partir' (to leave) to the adverb 'part' meaning 'partly' or 'partially' [auto-rewritten after MISMATCH verdict]",
+      "power": 28,
+      "rarity": "common",
+      "language": "fr"
+    },
+    "pair_id": 19
+  },
+  {
+    "category": "same_word_cross_lang",
+    "expected": "HIGH",
+    "a": {
+      "word": "本人",
+      "riddle": "When a story speaks itself, or a person insists on their own presence. This Chinese pair of characters means the one who is actually here, not a representative.",
+      "difficulty": 12,
+      "notes": "Contrasts presence with representation, pointing toward the first-person emphasis.",
+      "power": 50,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "b": {
+      "word": "本人",
+      "riddle": "The one who actually is who they say. The person themselves, not their representative — Japanese law draws this line carefully.",
+      "difficulty": 37,
+      "notes": "Hints at identity verification context common in Japanese bureaucracy.",
+      "power": 40,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "pair_id": 20
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "pair_id": 21
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "earth",
+      "riddle": "The only room we will ever be offered, though some dream of leaving it. A sphere that rolls through darkness and somehow grows everything we need.",
+      "difficulty": 22,
+      "notes": "Planetary perspective + life-sustaining mystery.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "pair_id": 22
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "wind",
+      "riddle": "You cannot see it arriving or leaving, yet trees bow in its presence and ships follow its invisible command — the breath of a world that cannot hold its breath forever.",
+      "difficulty": 16,
+      "notes": "Invisible force that moves through and affects visible things.",
+      "power": 70,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 23
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "ice",
+      "riddle": "Water that learned to hold its shape. The cold twin that floats when its siblings sink.",
+      "difficulty": 21,
+      "notes": "Scientific anomaly (floating ice) as angle.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 24
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "stone",
+      "riddle": "Earth's frozen gesture. What the road is made of, what walls stack, what skips across water when thrown flat and low.",
+      "difficulty": 18,
+      "notes": "Wait, 'pebbles' is fine but I'll avoid it anyway. Revised: Triple identity as road material, wall component, and skippable water-crosser.",
+      "power": 65,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 25
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "metal",
+      "riddle": "What stone dreams of becoming. Cold rings in the ground, forged by fire into something that rings when struck — the earth's bones, melted and reshaped.",
+      "difficulty": 12,
+      "notes": "Mining/smelting metaphor. No letters revealed. Safe.",
+      "power": 61,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 26
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "wood",
+      "riddle": "What trees become after they fall. The material that built your table and once held up a forest canopy.",
+      "difficulty": 15,
+      "notes": "Transformed nature — tree to human utility.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 27
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "earth",
+      "riddle": "The only room we will ever be offered, though some dream of leaving it. A sphere that rolls through darkness and somehow grows everything we need.",
+      "difficulty": 22,
+      "notes": "Planetary perspective + life-sustaining mystery.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "pair_id": 28
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "wind",
+      "riddle": "You cannot see it arriving or leaving, yet trees bow in its presence and ships follow its invisible command — the breath of a world that cannot hold its breath forever.",
+      "difficulty": 16,
+      "notes": "Invisible force that moves through and affects visible things.",
+      "power": 70,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 29
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "ice",
+      "riddle": "Water that learned to hold its shape. The cold twin that floats when its siblings sink.",
+      "difficulty": 21,
+      "notes": "Scientific anomaly (floating ice) as angle.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 30
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "stone",
+      "riddle": "Earth's frozen gesture. What the road is made of, what walls stack, what skips across water when thrown flat and low.",
+      "difficulty": 18,
+      "notes": "Wait, 'pebbles' is fine but I'll avoid it anyway. Revised: Triple identity as road material, wall component, and skippable water-crosser.",
+      "power": 65,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 31
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "metal",
+      "riddle": "What stone dreams of becoming. Cold rings in the ground, forged by fire into something that rings when struck — the earth's bones, melted and reshaped.",
+      "difficulty": 12,
+      "notes": "Mining/smelting metaphor. No letters revealed. Safe.",
+      "power": 61,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 32
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "wood",
+      "riddle": "What trees become after they fall. The material that built your table and once held up a forest canopy.",
+      "difficulty": 15,
+      "notes": "Transformed nature — tree to human utility.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 33
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "earth",
+      "riddle": "The only room we will ever be offered, though some dream of leaving it. A sphere that rolls through darkness and somehow grows everything we need.",
+      "difficulty": 22,
+      "notes": "Planetary perspective + life-sustaining mystery.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "wind",
+      "riddle": "You cannot see it arriving or leaving, yet trees bow in its presence and ships follow its invisible command — the breath of a world that cannot hold its breath forever.",
+      "difficulty": 16,
+      "notes": "Invisible force that moves through and affects visible things.",
+      "power": 70,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 34
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "earth",
+      "riddle": "The only room we will ever be offered, though some dream of leaving it. A sphere that rolls through darkness and somehow grows everything we need.",
+      "difficulty": 22,
+      "notes": "Planetary perspective + life-sustaining mystery.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "ice",
+      "riddle": "Water that learned to hold its shape. The cold twin that floats when its siblings sink.",
+      "difficulty": 21,
+      "notes": "Scientific anomaly (floating ice) as angle.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 35
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "earth",
+      "riddle": "The only room we will ever be offered, though some dream of leaving it. A sphere that rolls through darkness and somehow grows everything we need.",
+      "difficulty": 22,
+      "notes": "Planetary perspective + life-sustaining mystery.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "stone",
+      "riddle": "Earth's frozen gesture. What the road is made of, what walls stack, what skips across water when thrown flat and low.",
+      "difficulty": 18,
+      "notes": "Wait, 'pebbles' is fine but I'll avoid it anyway. Revised: Triple identity as road material, wall component, and skippable water-crosser.",
+      "power": 65,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 36
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "earth",
+      "riddle": "The only room we will ever be offered, though some dream of leaving it. A sphere that rolls through darkness and somehow grows everything we need.",
+      "difficulty": 22,
+      "notes": "Planetary perspective + life-sustaining mystery.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "metal",
+      "riddle": "What stone dreams of becoming. Cold rings in the ground, forged by fire into something that rings when struck — the earth's bones, melted and reshaped.",
+      "difficulty": 12,
+      "notes": "Mining/smelting metaphor. No letters revealed. Safe.",
+      "power": 61,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 37
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "earth",
+      "riddle": "The only room we will ever be offered, though some dream of leaving it. A sphere that rolls through darkness and somehow grows everything we need.",
+      "difficulty": 22,
+      "notes": "Planetary perspective + life-sustaining mystery.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "wood",
+      "riddle": "What trees become after they fall. The material that built your table and once held up a forest canopy.",
+      "difficulty": 15,
+      "notes": "Transformed nature — tree to human utility.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 38
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "wind",
+      "riddle": "You cannot see it arriving or leaving, yet trees bow in its presence and ships follow its invisible command — the breath of a world that cannot hold its breath forever.",
+      "difficulty": 16,
+      "notes": "Invisible force that moves through and affects visible things.",
+      "power": 70,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "ice",
+      "riddle": "Water that learned to hold its shape. The cold twin that floats when its siblings sink.",
+      "difficulty": 21,
+      "notes": "Scientific anomaly (floating ice) as angle.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 39
+  },
+  {
+    "category": "related_same_lang",
+    "expected": "MED-HIGH",
+    "a": {
+      "word": "wind",
+      "riddle": "You cannot see it arriving or leaving, yet trees bow in its presence and ships follow its invisible command — the breath of a world that cannot hold its breath forever.",
+      "difficulty": 16,
+      "notes": "Invisible force that moves through and affects visible things.",
+      "power": 70,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "stone",
+      "riddle": "Earth's frozen gesture. What the road is made of, what walls stack, what skips across water when thrown flat and low.",
+      "difficulty": 18,
+      "notes": "Wait, 'pebbles' is fine but I'll avoid it anyway. Revised: Triple identity as road material, wall component, and skippable water-crosser.",
+      "power": 65,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 40
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "bitcoin",
+      "riddle": "Digital gold forged in computational fire, limited by design yet boundless in reach — a decentralized dream of peer-to-peer electronic cash.",
+      "difficulty": 100,
+      "notes": "Angle: Creation myth and scarcity; avoid direct naming of blockchain tech.",
+      "power": 100,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "人才",
+      "riddle": "What every company hunts for, what schools promise to build — the Chinese compound for human capability, two characters that together mean someone worth keeping.",
+      "difficulty": 47,
+      "notes": "Focus on 'talent' concept without using the word itself.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "pair_id": 41
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "bitcoin",
+      "riddle": "Digital gold forged in computational fire, limited by design yet boundless in reach — a decentralized dream of peer-to-peer electronic cash.",
+      "difficulty": 100,
+      "notes": "Angle: Creation myth and scarcity; avoid direct naming of blockchain tech.",
+      "power": 100,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "attendent",
+      "riddle": "The ones who stand still while the world rushes past. Their patience is an active verb — they are not merely staying, they are expecting someone.",
+      "difficulty": 58,
+      "notes": "Contrasts waiting with passivity; avoids 'wait' verb while hinting at French present plural form.",
+      "power": 54,
+      "rarity": "uncommon",
+      "language": "fr"
+    },
+    "pair_id": 42
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "car",
+      "riddle": "A metal room that moves itself. Four wheels eat the road, a pedal makes it run, and the world shrinks to the distance it can travel.",
+      "difficulty": 25,
+      "notes": "Self-moving metal room as central metaphor.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "publikum",
+      "riddle": "Many eyes turned toward one stage, many breaths held in shared dark. German names this gathered witness — the collective body that watches, judges, applauds in rooms built for performance.",
+      "difficulty": 57,
+      "notes": "Theater/audience metaphor; no direct English synonym used.",
+      "power": 50,
+      "rarity": "common",
+      "language": "de"
+    },
+    "pair_id": 43
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "car",
+      "riddle": "A metal room that moves itself. Four wheels eat the road, a pedal makes it run, and the world shrinks to the distance it can travel.",
+      "difficulty": 25,
+      "notes": "Self-moving metal room as central metaphor.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "사랑한다",
+      "riddle": "Three syllables that change everything, the heaviest word Korean speakers can carry — a declaration that makes silence impossible afterward.",
+      "difficulty": 8,
+      "notes": "Cultural weight of direct confession in Korean romance.",
+      "power": 88,
+      "rarity": "legendary",
+      "language": "ko"
+    },
+    "pair_id": 44
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "love",
+      "riddle": "Four letters, countless definitions. What poets spend careers chasing and greeting cards sell by the billion — the force that supposedly makes the world spin.",
+      "difficulty": 25,
+      "notes": "Universally recognized concept, avoiding cliché angles.",
+      "power": 91,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "懐かしい",
+      "riddle": "A sudden ache for a time that cannot return — the scent of a classroom, a song from summer, a childhood street. Japanese folded gratitude into longing, making nostalgia sweet rather than bitter.",
+      "difficulty": 86,
+      "notes": "Describes nostalgic longing with Japanese cultural framing; the emotion's tone is distinctive.",
+      "power": 75,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "pair_id": 45
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "love",
+      "riddle": "Four letters, countless definitions. What poets spend careers chasing and greeting cards sell by the billion — the force that supposedly makes the world spin.",
+      "difficulty": 25,
+      "notes": "Universally recognized concept, avoiding cliché angles.",
+      "power": 91,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "受害者",
+      "riddle": "The one who receives what no one wishes to give — a name for those who endure harm written into the language itself.",
+      "difficulty": 11,
+      "notes": "Focus on receiving harm; Chinese compound meaning 'person who receives harm.'",
+      "power": 48,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 46
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "dog",
+      "riddle": "The creature that mastered us before we mastered them. They sleep on our floors and dream of chasing. Their loyalty is measured in wags.",
+      "difficulty": 23,
+      "notes": "Domestication reversal trope; 'puppy' or 'pet' synonyms avoided. Might be too easy.",
+      "power": 72,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "selber",
+      "riddle": "The German word for doing it yourself — no helpers, no hands but yours. The mirror shows who must complete the task.",
+      "difficulty": 7,
+      "notes": "Hints at self-reliance; 'selber' is German for 'yourself'.",
+      "power": 38,
+      "rarity": "common",
+      "language": "de"
+    },
+    "pair_id": 47
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "dog",
+      "riddle": "The creature that mastered us before we mastered them. They sleep on our floors and dream of chasing. Their loyalty is measured in wags.",
+      "difficulty": 23,
+      "notes": "Domestication reversal trope; 'puppy' or 'pet' synonyms avoided. Might be too easy.",
+      "power": 72,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "区块链",
+      "riddle": "没有人拥有却人人持有的账本。区块通过哈希环环相扣，信任从数学里长出来——所有币、链、合约背后的那副骨架。",
+      "difficulty": 94,
+      "notes": "New crypto legendary entry (zh) added for trading relevance.",
+      "power": 88,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "pair_id": 48
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "king",
+      "riddle": "The piece that moves one square at a time but loses the game if captured. The man who wears the crown, heavy with every choice.",
+      "difficulty": 22,
+      "notes": "Chess and monarchy double angle — no 'monarch' or 'ruler' mentioned.",
+      "power": 85,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "sprach",
+      "riddle": "The past declares itself before the tongue can move. A German memory of saying something once, now finished.",
+      "difficulty": 42,
+      "notes": "Hints at past tense of 'speak' without using speak/said/spoke; references German origin obliquely.",
+      "power": 48,
+      "rarity": "common",
+      "language": "de"
+    },
+    "pair_id": 49
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "king",
+      "riddle": "The piece that moves one square at a time but loses the game if captured. The man who wears the crown, heavy with every choice.",
+      "difficulty": 22,
+      "notes": "Chess and monarchy double angle — no 'monarch' or 'ruler' mentioned.",
+      "power": 85,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "끝났다",
+      "riddle": "The breath after the struggle. What time does to every story — the finality that Korean marks not with a noun but the moment reaching itself completes.",
+      "difficulty": 33,
+      "notes": "Past tense 'ended/finished' — focuses on completion over termination.",
+      "power": 48,
+      "rarity": "common",
+      "language": "ko"
+    },
+    "pair_id": 50
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "computer",
+      "riddle": "A lightning-cage of sand and thought. It counts faster than prayer but still needs a child to ask the question.",
+      "difficulty": 20,
+      "notes": "Alludes to silicon (sand) and speed (lightning) without naming tech components directly.",
+      "power": 42,
+      "rarity": "common",
+      "language": "en"
+    },
+    "b": {
+      "word": "kumpel",
+      "riddle": "A pit worker in German became the word for a close male friend — the camaraderie of those who share dangerous depths.",
+      "difficulty": 28,
+      "notes": "Etymological mining connection is the angle; pal/buddy/chum are banned.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "de"
+    },
+    "pair_id": 51
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "computer",
+      "riddle": "A lightning-cage of sand and thought. It counts faster than prayer but still needs a child to ask the question.",
+      "difficulty": 20,
+      "notes": "Alludes to silicon (sand) and speed (lightning) without naming tech components directly.",
+      "power": 42,
+      "rarity": "common",
+      "language": "en"
+    },
+    "b": {
+      "word": "幸運",
+      "riddle": "The wind that blows your way without being asked. A door that opens just as you reach for it, as if the universe were quietly on your side.",
+      "difficulty": 17,
+      "notes": "Metaphorical approach to serendipity; Japanese word not hinted.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "pair_id": 52
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "sun",
+      "riddle": "The day's burning eye, too bright to meet. Plants turn their faces toward it like worshippers, and nothing on Earth moves without its permission.",
+      "difficulty": 20,
+      "notes": "Central metaphor of an eye; plant behavior as clue.",
+      "power": 96,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "杀人犯",
+      "riddle": "One who ends a breathing story. The law calls it the worst crime; conscience calls it what cannot be undone.",
+      "difficulty": 31,
+      "notes": "Focus on the irrevocable act, avoiding 'killer' or 'murderer' directly.",
+      "power": 64,
+      "rarity": "rare",
+      "language": "zh"
+    },
+    "pair_id": 53
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "sun",
+      "riddle": "The day's burning eye, too bright to meet. Plants turn their faces toward it like worshippers, and nothing on Earth moves without its permission.",
+      "difficulty": 20,
+      "notes": "Central metaphor of an eye; plant behavior as clue.",
+      "power": 96,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "hors",
+      "riddle": "What the horse becomes when the H departs. French uses this small word for what lies beyond the boundary, outside, apart.",
+      "difficulty": 11,
+      "notes": "Wordplay on 'horse' plus preposition meaning.",
+      "power": 41,
+      "rarity": "common",
+      "language": "fr"
+    },
+    "pair_id": 54
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "一大堆",
+      "riddle": "More than enough. The Chinese phrase for a big pile or a heap — three characters describing quantity that spills over, overwhelms, or lies in wait for someone to sort through.",
+      "difficulty": 62,
+      "notes": "Metaphor of excessive quantity; Chinese origin referenced as clue.",
+      "power": 25,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 55
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "fire",
+      "riddle": "The only element that must be fed to survive. A prisoner that dances when you free it — warmest of friends, cruelest of masters.",
+      "difficulty": 88,
+      "notes": "Flame as living hunger; focuses on its dual nature as comfort and destruction.",
+      "power": 94,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "passera",
+      "riddle": "Nothing stays — not grief, not glory, not this very moment. A French verb in the future tense, knowing that even now will become then, and then will become gone.",
+      "difficulty": 58,
+      "notes": "Captures transience via future tense construction. 'Will pass' is too close but 'passera' itself is concealed.",
+      "power": 62,
+      "rarity": "rare",
+      "language": "fr"
+    },
+    "pair_id": 56
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "哟",
+      "riddle": "A breath that carries surprise. The tiny sound Chinese speakers drop into a sentence like a stone into still water.",
+      "difficulty": 9,
+      "notes": "Focus on modal particle function without giving the character.",
+      "power": 12,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 57
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "water",
+      "riddle": "The only thing that can be everywhere at once — clouds above, rivers below, blood inside, tears in eyes. It takes the shape of whatever holds it but can wear down mountains.",
+      "difficulty": 24,
+      "notes": "Ubiquity + adaptability + erosive power metaphor.",
+      "power": 92,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "더요",
+      "riddle": "The Korean addition marker, tacked on when there's more. A small sound saying and then some, continuing beyond.",
+      "difficulty": 39,
+      "notes": "Captures the sense of addition or moreness in Korean; describes continuation.",
+      "power": 25,
+      "rarity": "common",
+      "language": "ko"
+    },
+    "pair_id": 58
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "bread",
+      "riddle": "The staff that breaks, the warm brick that appears on every table — what every culture builds from the same three ingredients.",
+      "difficulty": 16,
+      "notes": "Table metaphor; avoids loaf, bake, dough.",
+      "power": 73,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "第一个",
+      "riddle": "What every race has one of and every list starts with. The Chinese way to say what came before all others — the primordinal spot, the lead-off position, number one's place.",
+      "difficulty": 18,
+      "notes": "Hints at ordinal primacy without spelling out first or initial.",
+      "power": 42,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 59
+  },
+  {
+    "category": "unrelated_cross_lang",
+    "expected": "LOW",
+    "a": {
+      "word": "bread",
+      "riddle": "The staff that breaks, the warm brick that appears on every table — what every culture builds from the same three ingredients.",
+      "difficulty": 16,
+      "notes": "Table metaphor; avoids loaf, bake, dough.",
+      "power": 73,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "雨",
+      "riddle": "Water falling from gray bellies. The Chinese wrote this first as dots from the sky, then made it one.",
+      "difficulty": 46,
+      "notes": "Alludes to oracle bone origins; mentions Chinese but not the character itself.",
+      "power": 75,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "pair_id": 60
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "好多",
+      "riddle": "When quantity exceeds counting and the mind stops at 'enough.' A Chinese two-character pairing where the first means 'very' and the second means 'many' — what a child says when candy spills from a broken bag.",
+      "difficulty": 17,
+      "notes": "Reveals the compound structure explicitly in notes-style phrasing; risk of being too easy for power 17.",
+      "power": 35,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "b": {
+      "word": "姓名",
+      "riddle": "The spell your parents cast that you answer to all your life. Two parts: what everyone calls you, and what you share with your ancestors.",
+      "difficulty": 32,
+      "notes": "Full name as given + family, the Chinese surname-first structure hinted.",
+      "power": 49,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 61
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "쓰레기",
+      "riddle": "What remains when value has been exhausted. The things we throw away, hoping they disappear — though they often outlast us.",
+      "difficulty": 9,
+      "notes": "Focus on discarded and valueless; Korean loanword from English makes this tricky.",
+      "power": 54,
+      "rarity": "uncommon",
+      "language": "ko"
+    },
+    "b": {
+      "word": "매니",
+      "riddle": "A title stolen from English, worn by those who guide artists, oversee teams, and keep the chaos of production from spilling over the edges — the one who manages.",
+      "difficulty": 15,
+      "notes": "Reoriented to describe 'manager' (loanword 매니 from English 'manager') rather than the number 10,000 (만). [auto-rewritten after MISMATCH verdict]",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "ko"
+    },
+    "pair_id": 62
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "chinese",
+      "riddle": "A billion tongues. The Middle Kingdom gave the world its oldest living voice — ink strokes flow like rivers.",
+      "difficulty": 18,
+      "notes": "Cultural reference to origin and writing system.",
+      "power": 86,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "祈り",
+      "riddle": "Words sent to no one you can see. A Japanese noun for the act of asking — not the person who answers, but the asking itself, repeated at shrines.",
+      "difficulty": 39,
+      "notes": "Focuses on the act of praying, not the target or result.",
+      "power": 75,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "pair_id": 63
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "書け",
+      "riddle": "A Japanese command pressed onto paper — the imperative shape that makes ink flow and thoughts permanent, turning moment into document.",
+      "difficulty": 86,
+      "notes": "Writing command through the transformation from thought to physical mark.",
+      "power": 28,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "b": {
+      "word": "眼里",
+      "riddle": "Not the gates themselves, but what lies within them — the preposition marking interiority, saying 'inside' when paired with vision organs.",
+      "difficulty": 86,
+      "notes": "Hints at 里 as a locative particle meaning 'inside/within', specifically in the compound 眼里 (in the eyes) [overnight fix]",
+      "power": 22,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "pair_id": 64
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "君子",
+      "riddle": "A person of noble character in Confucian philosophy, who acts with righteousness even when no one watches, valuing honor over profit.",
+      "difficulty": 70,
+      "notes": "Cultural archetype from Chinese philosophy [backfill]",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "b": {
+      "word": "独立",
+      "riddle": "The moment you stop borrowing someone else's path. A nation or a soul standing on its own chosen feet.",
+      "difficulty": 14,
+      "notes": "Dual hint at personal and political sovereignty without naming either directly.",
+      "power": 74,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "pair_id": 65
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "稳定币",
+      "riddle": "承诺保持在一美元的代币，通常说到做到。加密圈的结算轨道——抵押品躺在某个金库，信任靠没人审过的银行背书。",
+      "difficulty": 86,
+      "notes": "New crypto legendary entry (zh) added for trading relevance.",
+      "power": 79,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "b": {
+      "word": "タイ",
+      "riddle": "Japanese borrowed this beast's name from the sound it makes. A striped giant that carries its own mountain of gold on its back.",
+      "difficulty": 2,
+      "notes": "Onomatopoeia clue, very easy for Japanese speakers.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "pair_id": 66
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "王冠",
+      "riddle": "Gold that weighs upon a brow. The heavy circle that turns a human into a symbol — Japan writes it with the characters for king and ring, though the thing itself has crowned monarchs across every sea.",
+      "difficulty": 86,
+      "notes": "Metaphor: weight and transformation. Hints at kanji composition without revealing it.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "b": {
+      "word": "paris",
+      "riddle": "The city shepherds borrowed from myth, yet the Trojan youth who started it all never saw the Seine or the tower.",
+      "difficulty": 7,
+      "notes": "References Paris of Troy, not the city",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "fr"
+    },
+    "pair_id": 67
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "혈액",
+      "riddle": "Red river that never stops flowing. The private tide that carries life through hidden tunnels. Spill it and the body knows fear.",
+      "difficulty": 18,
+      "notes": "Biological focus as internal tide/river, avoiding medical terms.",
+      "rarity": "legendary",
+      "power": 81,
+      "language": "ko"
+    },
+    "b": {
+      "word": "ローマ",
+      "riddle": "The city that wasn't built in a day, spoken by an island nation across the sea. Where emperors lived and fell.",
+      "difficulty": 8,
+      "notes": "Katakana for 'Rome' — the eternal city, standard loanword.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "pair_id": 68
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "明らか",
+      "riddle": "What fog leaves behind when it lifts. The state of needing no explanation.",
+      "difficulty": 18,
+      "notes": "Japanese for obvious/clear, straightforward metaphor",
+      "power": 65,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "b": {
+      "word": "無罪",
+      "riddle": "What the gavel declares when the law's long argument ends. The state admits: this one walks free, shadowless.",
+      "difficulty": 3,
+      "notes": "Legal metaphor, no tricky angles.",
+      "power": 71,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "pair_id": 69
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "武士道",
+      "riddle": "The path the sword-writers codified: loyalty unto death, honor over survival. A Japanese samurai's creed, forged in the era when warriors wrote poetry before battles — duty sharper than any blade.",
+      "difficulty": 90,
+      "notes": "Historical allusion to bushido; avoids the word itself except as target.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "b": {
+      "word": "wasser",
+      "riddle": "The pale mirror that flows downhill, takes any shape but keeps its own nature, answers to thirst but obeys only gravity.",
+      "difficulty": 18,
+      "notes": "Metaphor for water's properties; German origin hinted by 'wasser' sound pattern but never stated",
+      "power": 75,
+      "rarity": "legendary",
+      "language": "de"
+    },
+    "pair_id": 70
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "liberty",
+      "riddle": "What the statue lifts, though her torch grows heavy. The condition that sounds like freedom but costs something every day to keep.",
+      "difficulty": 28,
+      "notes": "Statue of Liberty allusion; abstract enough to avoid giveaway.",
+      "power": 76,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "frankenstein",
+      "riddle": "What the doctor created ended up creating his doom. People say the monster's name but mean the scientist — a warning stitched from grave-robbed parts.",
+      "difficulty": 51,
+      "notes": "Common misattribution angle — everyone names the wrong one, the created destroys the creator.",
+      "power": 75,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "pair_id": 71
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "動機",
+      "riddle": "Detectives hunt for it. It explains why a person acted when no one was watching. The spark before the fire, the whisper before the shout.",
+      "difficulty": 7,
+      "notes": "Centers on 'motive' as the why-behind-action without revealing the term.",
+      "power": 54,
+      "rarity": "uncommon",
+      "language": "ja"
+    },
+    "b": {
+      "word": "greet",
+      "riddle": "The first word given when paths cross — a small ceremony of recognition that says 'I see you' before any other business begins.",
+      "difficulty": 38,
+      "notes": "Focus on the act of acknowledging someone's arrival/presence; avoids 'hello' or specific greetings.",
+      "power": 56,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 72
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "野心",
+      "riddle": "A fire that drives you to climb mountains you never thought you'd scale—yet burns everything else to ash in its wake.",
+      "difficulty": 50,
+      "notes": "Abstract human trait, dual nature [backfill]",
+      "power": 67,
+      "rarity": "rare",
+      "language": "zh"
+    },
+    "b": {
+      "word": "军队",
+      "riddle": "Wheels that march and men who ride. The Chinese compound for organized force — metal and muscle moving as one body.",
+      "difficulty": 17,
+      "notes": "References the chariot + army components without literal translation.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "zh"
+    },
+    "pair_id": 73
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "まさか",
+      "riddle": "The exclamation when reality violates expectation — disbelief voiced as a question, the gasp before acceptance that fate could be this cruel or strange.",
+      "difficulty": 19,
+      "notes": "Expression of incredulity; common in Japanese reaction scenes",
+      "power": 42,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "b": {
+      "word": "でも",
+      "riddle": "The tongue's smallest brake. A concession before a pivot. Yes, the sun shines — this word holds the umbrella. The period that refuses to end the sentence.",
+      "difficulty": 36,
+      "notes": "Conjunctive function as narrative interruption; avoid 'but' or 'however.'",
+      "power": 35,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "pair_id": 74
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "打招呼",
+      "riddle": "The small ceremony of arrival: eyes meet, a nod, maybe words. Chinese packs the whole dance of acknowledgment into three brisk gestures — to strike a greeting, like casting a spell of recognition.",
+      "difficulty": 86,
+      "notes": "Frames the social ritual, notes Chinese phrasing.",
+      "power": 56,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "b": {
+      "word": "見つけ",
+      "riddle": "The past action of eyes meeting what they sought. A verb bent in memory, still holding the moment of discovery.",
+      "difficulty": 25,
+      "notes": "References the verb form (found/did find) without using English synonyms.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "ja"
+    },
+    "pair_id": 75
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "reward",
+      "riddle": "The sweet thing waiting at the end of a hard journey. What a trainer gives a dog when it finally learns the trick.",
+      "difficulty": 11,
+      "notes": "Dog training metaphor; avoids 'prize', 'award', 'bonus'.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "고급",
+      "riddle": "Not common, not crude — the Korean pairing of 'high' and 'grade' marks what costs more, tastes better, sits above the ordinary.",
+      "difficulty": 66,
+      "notes": "Describes premium quality through Korean compound structure.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "ko"
+    },
+    "pair_id": 76
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "桜",
+      "riddle": "The flower that falls while still perfect — never withering, only dropping in a pink snow of one-week glory. Japan holds it above all others, as proof that brevity itself is beauty.",
+      "difficulty": 88,
+      "notes": "Angle: iconic Japanese flower. Risk: 'pink snow' and 'one-week' may be distinctive but circumvent 'sakura'.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "b": {
+      "word": "春",
+      "riddle": "Which season awakens the frozen world with blossoming life, warming the earth as days grow longer and nature celebrates rebirth after winter's sleep?",
+      "difficulty": 10,
+      "notes": "Seasonal fundamental, very accessible difficulty [backfill]",
+      "power": 78,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "pair_id": 77
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "皇上",
+      "riddle": "The one man above all others. Not a king — that word bears too much European weight. The Chinese had their own title for the son of heaven who sat alone on the dragon throne.",
+      "difficulty": 33,
+      "notes": "Emperor specifically in Chinese imperial context.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "b": {
+      "word": "witch",
+      "riddle": "A woman who said no to the village rules. The one they blamed when the cows stopped giving milk and the crops burned black.",
+      "difficulty": 16,
+      "notes": "Scapegoat metaphor; risk: 'woman' is necessary context.",
+      "power": 76,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "pair_id": 78
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "tenir",
+      "riddle": "The French verb to hold, to keep, to maintain — what hands do to children, what promises do to us.",
+      "difficulty": 10,
+      "notes": "Focuses on holding/keeping as a concept.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "fr"
+    },
+    "b": {
+      "word": "苦労",
+      "riddle": "Bitter work. Japanese joins suffering with labor — the toll exacted, the trouble taken, the sweat behind what looks easy.",
+      "difficulty": 11,
+      "notes": "Hardship/trouble; combines bitter + labor/toil.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "ja"
+    },
+    "pair_id": 79
+  },
+  {
+    "category": "same_rarity_random",
+    "expected": "MED",
+    "a": {
+      "word": "气氛",
+      "riddle": "The weight of a room before anyone speaks — the unspoken hum that makes a library feel sacred and a party feel alive, though no instrument measures it.",
+      "difficulty": 28,
+      "notes": "Describes the feeling of a space's emotional climate; Chinese word explicitly names what English calls 'vibe' or 'atmosphere'.",
+      "power": 50,
+      "rarity": "common",
+      "language": "zh"
+    },
+    "b": {
+      "word": "surgical",
+      "riddle": "Precise enough to cut between what must stay and what must go. The careful exactness of a hand that knows anatomy.",
+      "difficulty": 2,
+      "notes": "Focuses on precision and removal; avoids 'operation', 'medical', 'doctor', 'cut'.",
+      "power": 45,
+      "rarity": "common",
+      "language": "en"
+    },
+    "pair_id": 80
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "신이시여",
+      "riddle": "What tragedy cries toward the ceiling. The syllable a hero speaks when the final door slams shut.",
+      "difficulty": 3,
+      "notes": "Invocation punctuation; frame as desperate address to heaven.",
+      "power": 82,
+      "rarity": "legendary",
+      "language": "ko"
+    },
+    "b": {
+      "word": "おや",
+      "riddle": "What slips out when the expected fails to arrive. A tiny Japanese sound for surprise that requires no translation.",
+      "difficulty": 5,
+      "notes": "Oh/my/interjection via surprise context",
+      "power": 32,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "pair_id": 81
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "雷",
+      "riddle": "I flash before the thunder speaks, illuminating the sky for a split second before vanishing. Born from storms, I strike the earth with tremendous force.",
+      "difficulty": 25,
+      "notes": "Natural phenomenon with distinct visual and auditory characteristics, universally understood. [backfill]",
+      "power": 81,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "b": {
+      "word": "gesund",
+      "riddle": "The state every throat seeks when it burns, every parent wishes upon a child leaving home. The German says it in one word that sounds like a promise kept.",
+      "difficulty": 8,
+      "notes": "Focus on wellness/health as universal concept, sound pun as subtle secondary clue.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "de"
+    },
+    "pair_id": 82
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "panicked",
+      "riddle": "When the mind races so fast the feet forget how to move. The heart drums a rhythm only fear can march to.",
+      "difficulty": 37,
+      "notes": "Focuses on the physical paralysis of fear, the freeze response.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "늑대",
+      "riddle": "The gray hunter that howls at moons, a canine shape feared in fables across the peninsular night.",
+      "difficulty": 37,
+      "notes": "Korean for wolf; avoid 'canine' and 'howl' if too leaky.",
+      "power": 67,
+      "rarity": "rare",
+      "language": "ko"
+    },
+    "pair_id": 83
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "power",
+      "riddle": "The ability to make things move, to change the world, to speak and be heard — what muscles and governments and wishes all reach for.",
+      "difficulty": 23,
+      "notes": "Broadens beyond electricity to capture agency, influence, and capacity — the core meaning of 'power' [auto-rewritten after MISMATCH verdict]",
+      "power": 76,
+      "rarity": "legendary",
+      "language": "en"
+    },
+    "b": {
+      "word": "無視",
+      "riddle": "The art of looking through something as if it were air. A gaze that slides past without catching — Japanese for the cold weapon of treating what's present as if it weren't there.",
+      "difficulty": 13,
+      "notes": "Describes the act of ignoring through the metaphor of not truly seeing.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "ja"
+    },
+    "pair_id": 84
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "boxing",
+      "riddle": "The sweet science two practice in a square ring. Gloves soften the blow; judges count the seconds after a fall. A dance where one partner tries to knock the other down.",
+      "difficulty": 53,
+      "notes": "References 'sweet science' nickname and ring paradox.",
+      "power": 62,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "罪",
+      "riddle": "What we call the mark that cannot be washed away. A single Chinese character for what keeps confessional booths in business.",
+      "difficulty": 7,
+      "notes": "Moral weight metaphor — hints at East-West religious parallel.",
+      "power": 77,
+      "rarity": "legendary",
+      "language": "zh"
+    },
+    "pair_id": 85
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "惹",
+      "riddle": "The tiny spark that turns a situation ugly. One wrong move or word that wakes up sleeping trouble — the first domino in a chain you did not want to start.",
+      "difficulty": 13,
+      "notes": "Focuses on the causative aspect of provoking without using provoke, annoy, or trigger.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "b": {
+      "word": "떠나",
+      "riddle": "What feet do when a place has nothing left for them. The unmaking of belonging, one step at a time.",
+      "difficulty": 13,
+      "notes": "Focuses on the emotional weight of departure rather than the physical act of leaving.",
+      "power": 62,
+      "rarity": "rare",
+      "language": "ko"
+    },
+    "pair_id": 86
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "非難",
+      "riddle": "Words thrown like stones. A Japanese compound for when your voice becomes a weapon against another's mistake.",
+      "difficulty": 6,
+      "notes": "Focus on criticism/blame without naming it directly.",
+      "power": 48,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "b": {
+      "word": "不安",
+      "riddle": "The feeling that the ground might shift. A Japanese word for when tomorrow hasn't promised to hold you.",
+      "difficulty": 11,
+      "notes": "Captures anxiety/uncertainty; language origin noted without exact wording.",
+      "power": 62,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "pair_id": 87
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "nulle",
+      "riddle": "What zero wears in Paris — the feminine article that nothing drags around like a dress.",
+      "difficulty": 7,
+      "notes": "Plays on null as zero; grammatical gender is the hint.",
+      "power": 35,
+      "rarity": "common",
+      "language": "fr"
+    },
+    "b": {
+      "word": "klar",
+      "riddle": "What answers come when the fog lifts. A German word for transparent thinking, for ringing bells, for agreements struck in a smoke-filled room.",
+      "difficulty": 24,
+      "notes": "Clear/crystal/okay — the German all-purpose affirmative.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "de"
+    },
+    "pair_id": 88
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "무대",
+      "riddle": "The raised floor where humans pretend to be other humans. Every performance needs it — a platform between reality and dream.",
+      "difficulty": 78,
+      "notes": "Theater metaphor without naming stages or performances directly. Korean for a place of performance.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "ko"
+    },
+    "b": {
+      "word": "rain",
+      "riddle": "Sky water arriving without permission. The ocean's attempt to return home, falling drop by drop until umbrellas bloom.",
+      "difficulty": 19,
+      "notes": "Focus on falling water/clouds, never mention precipitation or weather.",
+      "power": 62,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "pair_id": 89
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "gabriel",
+      "riddle": "The archangel who announces. He brought news to a virgin in Nazareth and scrolls to a prophet in Persia. Islam honors him too — the messenger who stands closest to the throne.",
+      "difficulty": 42,
+      "notes": "Biblical/Quranic allusion without naming the annunciation directly.",
+      "power": 72,
+      "rarity": "rare",
+      "language": "en"
+    },
+    "b": {
+      "word": "drum",
+      "riddle": "A hollow voice you strike with your hands. The heartbeat of any army that marches.",
+      "difficulty": 5,
+      "notes": "Sound/hollowness/beat focus, very simple",
+      "power": 56,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 90
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "イエス",
+      "riddle": "The Nazarene, as Japanese render his name. Four sounds that mean 'yes' in another tongue, but here name salvation.",
+      "difficulty": 20,
+      "notes": "Katakana for Jesus. The 'yes' pun in Spanish/English is a deliberate red herring.",
+      "power": 96,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "b": {
+      "word": "沟通",
+      "riddle": "A word that means more than speaking — the Chinese term for when two minds actually meet, when meaning crosses the water between people and arrives intact, not just heard but understood.",
+      "difficulty": 70,
+      "notes": "Emphasizes successful connection over mere speech; hints at Chinese origin without revealing characters.",
+      "power": 56,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "pair_id": 91
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "前進",
+      "riddle": "Not back, not still. The only direction that conquers distance.",
+      "difficulty": 40,
+      "notes": "Forward motion; avoids 'forward/advance' by negating alternatives.",
+      "power": 65,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "b": {
+      "word": "appeal",
+      "riddle": "A call sent upward hoping someone will listen. Law courts cry it; advertisements whisper it; desperation screams it.",
+      "difficulty": 8,
+      "notes": "Upward request metaphor",
+      "power": 61,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 92
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "phénix",
+      "riddle": "I am a mythical bird of fire that burns to death in its nest, then rises reborn from its own ashes.",
+      "difficulty": 60,
+      "notes": "Legendary creature with unique resurrection motif [backfill]",
+      "power": 83,
+      "rarity": "legendary",
+      "language": "fr"
+    },
+    "b": {
+      "word": "site",
+      "riddle": "A place chosen before anything rises there. Archaeologists study what was left on one; builders prepare one before breaking ground. Location made concrete.",
+      "difficulty": 12,
+      "notes": "Emphasizes site as 'designated location' rather than website, with architectural/archaeological framing.",
+      "power": 42,
+      "rarity": "common",
+      "language": "en"
+    },
+    "pair_id": 93
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "adn",
+      "riddle": "The twisted ladder inside every cell, four letters spelling out what you are — a recipe older than memory, written before you drew breath.",
+      "difficulty": 33,
+      "notes": "Helix/recipe metaphor; 'DNA' is the target but acronym is standard.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "fr"
+    },
+    "b": {
+      "word": "bernard",
+      "riddle": "A saint and a dog share this name. One founded a monastic order; the other rescues travelers in Alpine snow, barrel at its collar.",
+      "difficulty": 8,
+      "notes": "Corrects the error — Saint Bernard of Clairvaux founded the order, and the St. Bernard dog rescues — not Ireland or sharks. [auto-rewritten after MISMATCH verdict]",
+      "power": 42,
+      "rarity": "common",
+      "language": "en"
+    },
+    "pair_id": 94
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "seldom",
+      "riddle": "A word for the spaciousness between occurrences. When something happens rarely enough that each arrival still carries the weight of surprise.",
+      "difficulty": 65,
+      "notes": "Points to frequency without naming it; 'spaciousness between' and 'rarely' skirt close to direct synonyms.",
+      "power": 28,
+      "rarity": "common",
+      "language": "en"
+    },
+    "b": {
+      "word": "zerstören",
+      "riddle": "Unmaking what someone made. The German verb starts with a tearing-apart prefix and ends in ruin.",
+      "difficulty": 4,
+      "notes": "Destroy clue without using break, ruin, or damage.",
+      "power": 58,
+      "rarity": "uncommon",
+      "language": "de"
+    },
+    "pair_id": 95
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "デルタ",
+      "riddle": "The fourth letter traveled far from Greece. Now Japanese speakers borrow it to name where a river splits into many mouths before meeting the sea — the shape of change itself.",
+      "difficulty": 28,
+      "notes": "Katakana transliteration of 'delta'; hints at both letter and river meaning without spelling either.",
+      "power": 48,
+      "rarity": "common",
+      "language": "ja"
+    },
+    "b": {
+      "word": "侘寂",
+      "riddle": "The Japanese art of finding beauty in what is cracked, faded, worn. A tea bowl's irregular edge, rust on iron, the grace of things that have survived time's indifference — perfection has no story to tell.",
+      "difficulty": 94,
+      "notes": "References the aesthetic explicitly; the compound itself remains transliterated only as two cryptic syllables in the original.",
+      "power": 78,
+      "rarity": "legendary",
+      "language": "ja"
+    },
+    "pair_id": 96
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "wand",
+      "riddle": "A slender stick that pretends to change the world. Small hands hold it and whisper nonsense syllables, believing the universe will listen.",
+      "difficulty": 59,
+      "notes": "The childhood magic association; no wizard talk or Voldemort.",
+      "power": 61,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "b": {
+      "word": "温暖",
+      "riddle": "The heat that feels like kindness — what fire gives to cold hands, what a blanket gives to a shivering child.",
+      "difficulty": 54,
+      "notes": "Tactile metaphor conflating temperature and emotional comfort.",
+      "power": 72,
+      "rarity": "rare",
+      "language": "zh"
+    },
+    "pair_id": 97
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "膝盖",
+      "riddle": "The joint that bends first — for prayer, for proposing, for surrender. Its character shows flesh atop a moon-shaped bone.",
+      "difficulty": 32,
+      "notes": "Focuses on cultural associations and character composition.",
+      "power": 52,
+      "rarity": "uncommon",
+      "language": "zh"
+    },
+    "b": {
+      "word": "大切",
+      "riddle": "What you would save first if the house caught fire. The heavy, careful feeling that makes some things untouchable — too precious to risk losing.",
+      "difficulty": 17,
+      "notes": "Emphasizes value/cherished nature; Japanese compound not revealed.",
+      "power": 67,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "pair_id": 98
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "墜落",
+      "riddle": "Gravity claiming what flew too high. The Japanese word for falling from the sky — planes, hopes, and market charts all share this sudden descent.",
+      "difficulty": 45,
+      "notes": "Falling from above metaphor; applies to both aircraft and abstract crashes.",
+      "power": 68,
+      "rarity": "rare",
+      "language": "ja"
+    },
+    "b": {
+      "word": "자주",
+      "riddle": "How often the sun rises or the tide returns. The frequency that makes familiarity out of repetition.",
+      "difficulty": 20,
+      "notes": "Frequency metaphor; avoiding 'often' or 'frequently' as direct synonyms",
+      "power": 42,
+      "rarity": "common",
+      "language": "ko"
+    },
+    "pair_id": 99
+  },
+  {
+    "category": "cross_rarity_random",
+    "expected": "LOW-MED",
+    "a": {
+      "word": "다른",
+      "riddle": "The shadow of similarity, marking what stands apart from the rest.",
+      "difficulty": 25,
+      "notes": "Focuses on difference/otherness rather than the Korean word itself.",
+      "power": 32,
+      "rarity": "common",
+      "language": "ko"
+    },
+    "b": {
+      "word": "ale",
+      "riddle": "An older sibling of beer, drank warm from the tap. In taverns before hops arrived, this was the staple — brewed strong and dark, with tales told over each foaming pint.",
+      "difficulty": 82,
+      "notes": "Distinguishes from lager and modern beer through history and temperature.",
+      "power": 55,
+      "rarity": "uncommon",
+      "language": "en"
+    },
+    "pair_id": 100
+  }
+]

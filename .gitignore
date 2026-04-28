@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -7,6 +8,47 @@ __pycache__/
 venv/
 build/
 dist/
-.DS_Store
-*.log
+.slither_venv/
+
+# Solidity / Foundry
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+contracts/.gas-snapshot
+contracts/lib/
+
+# Coordinator runtime
+coordinator/*.db
+coordinator/*.db-wal
+coordinator/*.db-shm
+coordinator/*.db.indexer
+coordinator/*.db.indexer-wal
+coordinator/*.db.indexer-shm
+coordinator/*.db.v0_backup
+coordinator/*.db.v0_backup.indexer
+coordinator/fusion_cache/
+coordinator/config.toml
+coordinator/*.log
+coordinator/testnet_vault.json
+
+# Local agent state
 agent_state.db*
+.ardi/
+
+# Secrets
+.env
+*.pk
+.testnet/
+
+# Per-chain deploy artifacts (contain operator-specific addresses)
+contracts/deployments/sepolia.json
+contracts/deployments/base-sepolia.json
+contracts/deployments/84532.json
+
+# Vault data (canonical at github.com/leslieshen1/wordbank-riddle-bench)
+data/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

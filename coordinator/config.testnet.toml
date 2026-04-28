@@ -1,0 +1,86 @@
+# =============================================================
+# Ardi Coordinator — Base Sepolia testnet config
+# =============================================================
+# Used for the testnet rehearsal. Contract addresses are filled in
+# automatically by `scripts/wire_testnet_config.py` after running
+# `forge script script/DeployTestnet.s.sol`.
+#
+# Run:
+#   source .testnet/deployer.env
+#   export ARDI_COORDINATOR_PK=$DEPLOYER_PK
+#   export ARDI_COORDINATOR_SENDER_PK=$DEPLOYER_PK
+#   export ARDI_VAULT_PASS=testnet-vault-pass
+#   export ANTHROPIC_API_KEY=...   # only needed for fusion oracle
+#   cd coordinator
+#   python -m coordinator.main --config config.testnet.toml
+# =============================================================
+
+[server]
+host = "127.0.0.1"
+port = 8080
+# Local-only listen — agents on the same machine reach Coordinator via
+# http://127.0.0.1:8080. If you later expose this via ngrok / Cloudflare
+# Tunnel for remote agents, set host = "0.0.0.0" and add trusted_proxies.
+
+[chain]
+rpc_url = "https://sepolia.base.org"
+chain_id = 84532
+# Backup RPCs (optional — Base Sepolia has multiple public endpoints)
+rpc_url_backups = [
+  "https://base-sepolia-rpc.publicnode.com",
+  "https://base-sepolia.blockpi.network/v1/rpc/public",
+]
+
+[contracts]
+# v1.0 deployment (hash-only publish, win-cap, wordCompromised).
+# Filled from contracts/deployments/base-sepolia.json after the
+# `forge script DeployTestnet --broadcast` ran on 2026-04-26.
+ardi_nft = "0x3aBD085065fdf1ee1680f46585A29EA51e0Dafec"
+ardi_token = "0xb566544C07ef77ADdc6E05b6CF63debE9F08581c"
+bond_escrow = "0x2b04fA4e1Ad2b7bC29d65b8468CC034c75Bd95D1"
+mint_controller = "0x801de05817C9232E600993DDaCE06Ba1Fce67DC9"
+otc = "0xEB2B30E0FdBC5273506CAfeBC3246E11D565cF6A"
+awp_token = "0x887070a8d9b35699F86692602678b6c4E46D9b52"
+kya = "0x86C5Fb803653F710a280c0Cf261bf1c6919B01B5"
+epoch_draw = "0xFd1314749D25e8F40D39a8190B7D330898208352"
+
+[coordinator]
+# Same EOA as deployer in the single-wallet testnet setup.
+private_key_env = "ARDI_COORDINATOR_PK"
+sender_pk_env = "ARDI_COORDINATOR_SENDER_PK"
+
+[epoch]
+duration_seconds = 180          # 3-minute epochs
+submission_window = 165         # commit window; reveal happens in the last 15s
+riddles_per_epoch = 15
+max_submissions_per_agent = 5
+
+[mining]
+# AUTO-FILLED by wire_testnet_config.py to match what the deploy script wrote.
+genesis_ts = 1777109103
+mining_max_days = 14            # short Phase 1 for quick testnet observation
+
+[vault]
+# v1.0: must match the full 21K-entry vault that DeployTestnet.s.sol baked
+# into VAULT_MERKLE_ROOT (0x135744267bf3...c28). This file contains all
+# 21,000 vault entries; Coordinator picks 15/epoch via weighted sampling.
+file = "../data/riddles.json"
+encrypted = false                # PLAINTEXT — testnet only
+passphrase_env = "ARDI_VAULT_PASS"
+
+[fusion]
+provider = "anthropic"
+model = "claude-sonnet-4-5"
+api_key_env = "ANTHROPIC_API_KEY"
+cache_dir = "./fusion_cache"
+
+[settlement]
+settle_hour_utc = 0
+# 100% to holders for $aArdi (matches design-spec)
+holder_bps = 10000
+fusion_bps = 0
+# AWP receipt split: 10% operator ops, 90% holders (matches on-chain default)
+owner_ops_bps = 1000
+
+[storage]
+db_path = "./coordinator.testnet.db"
